@@ -106,6 +106,8 @@ private:
 	//
 	bool m_Spawning;
 	int m_ClientID;
+
+	// Team = 0: Infected, Team = 1: Humans
 	int m_Team;
 };
 

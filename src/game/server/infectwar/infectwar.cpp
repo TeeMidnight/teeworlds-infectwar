@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include <engine/shared/config.h>
+
 #include "infectwar.h"
 
 CGameControllerInfectWar::CGameControllerInfectWar(class CGameContext *pGameServer)
@@ -12,7 +14,7 @@ CGameControllerInfectWar::CGameControllerInfectWar(class CGameContext *pGameServ
 {
 	m_pGameType = "InfectWar Catch"; // "Catch" make it color gold in DDNet
 
-	m_GameFlags = GAMEFLAG_TEAMS;
+	m_GameFlags = 0;
 }
 
 void CGameControllerInfectWar::DoNinjaBar()
@@ -31,6 +33,30 @@ void CGameControllerInfectWar::DoNinjaBar()
 			GameServer()->SendBroadcast(Buffer.c_str(), i, 2, BCLAYER_NINJABAR);
 		}
 	}
+}
+
+void CGameControllerInfectWar::Snap(int SnappingClient)
+{
+	CNetObj_GameInfo *pGameInfoObj = (CNetObj_GameInfo *)Server()->SnapNewItem(NETOBJTYPE_GAMEINFO, 0, sizeof(CNetObj_GameInfo));
+	if(!pGameInfoObj)
+		return;
+
+	pGameInfoObj->m_GameFlags = GAMEFLAG_TEAMS;
+	pGameInfoObj->m_GameStateFlags = 0;
+	if(m_GameOverTick != -1)
+		pGameInfoObj->m_GameStateFlags |= GAMESTATEFLAG_GAMEOVER;
+	if(m_SuddenDeath)
+		pGameInfoObj->m_GameStateFlags |= GAMESTATEFLAG_SUDDENDEATH;
+	if(GameServer()->m_World.m_Paused)
+		pGameInfoObj->m_GameStateFlags |= GAMESTATEFLAG_PAUSED;
+	pGameInfoObj->m_RoundStartTick = m_RoundStartTick;
+	pGameInfoObj->m_WarmupTimer = GameServer()->m_World.m_Paused ? m_UnpauseTimer : m_Warmup;
+
+	pGameInfoObj->m_ScoreLimit = 0;
+	pGameInfoObj->m_TimeLimit = g_Config.m_SvTimelimit;
+
+	pGameInfoObj->m_RoundNum = (str_length(g_Config.m_SvMaprotation) && g_Config.m_SvRoundsPerMap) ? g_Config.m_SvRoundsPerMap : 0;
+	pGameInfoObj->m_RoundCurrent = m_RoundCount+1;
 }
 
 void CGameControllerInfectWar::Tick()

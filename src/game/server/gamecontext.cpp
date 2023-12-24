@@ -630,15 +630,12 @@ void CGameContext::OnClientConnected(int ClientID)
 	const int StartTeam = g_Config.m_SvTournamentMode ? TEAM_SPECTATORS : m_pController->GetAutoTeam(ClientID);
 
 	m_apPlayers[ClientID] = new(ClientID) CPlayer(this, ClientID, StartTeam);
-	//players[client_id].init(client_id);
-	//players[client_id].client_id = client_id;
 
-	(void)m_pController->CheckTeamBalance();
-
+	m_pController->OnClientConnected(ClientID);
+	
 	// send active vote
 	if(m_VoteCloseTime)
 		SendVoteSet(ClientID);
-
 	// send motd
 	CNetMsg_Sv_Motd Msg;
 	Msg.m_pMessage = g_Config.m_SvMotd;

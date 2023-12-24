@@ -93,13 +93,13 @@ public:
 	virtual void Snap(int SnappingClient);
 
 	/*
-		Function: on_entity
+		Function: OnEntity
 			Called when the map is loaded to process an entity
 			in the map.
 
 		Arguments:
-			index - Entity index.
-			pos - Where the entity is located in the world.
+			Index - Entity index.
+			Pos - Where the entity is located in the world.
 
 		Returns:
 			bool?
@@ -107,25 +107,33 @@ public:
 	virtual bool OnEntity(int Index, vec2 Pos);
 
 	/*
-		Function: on_CCharacter_spawn
+		Function: OnCharacterSpawn
 			Called when a CCharacter spawns into the game world.
 
 		Arguments:
-			chr - The CCharacter that was spawned.
+			pChr - The CCharacter that was spawned.
 	*/
 	virtual void OnCharacterSpawn(class CCharacter *pChr);
 
 	/*
-		Function: on_CCharacter_death
+		Function: OnCharacterDeath
 			Called when a CCharacter in the world dies.
 
 		Arguments:
-			victim - The CCharacter that died.
-			killer - The player that killed it.
-			weapon - What weapon that killed it. Can be -1 for undefined
+			pVictim - The CCharacter that died.
+			pKiller - The player that killed it.
+			Weapon - What weapon that killed it. Can be -1 for undefined
 				weapon when switching team or player suicides.
 	*/
 	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
+	/*
+		Function: OnClientConnected
+			Called when a client connected
+
+		Arguments:
+			ClientID - The client id
+	*/
+	virtual void OnClientConnected(int ClientID);
 
 
 	virtual void OnPlayerInfoChange(class CPlayer *pP);

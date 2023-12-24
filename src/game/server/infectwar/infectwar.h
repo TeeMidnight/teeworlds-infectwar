@@ -8,6 +8,7 @@ public:
 	CGameControllerInfectWar(class CGameContext *pGameServer);
 
 	void DoNinjaBar();
+	void Snap(int SnappingClient) override;
 	void Tick() override;
 };
 #endif
