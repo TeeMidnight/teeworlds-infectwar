@@ -64,24 +64,24 @@ protected:
 public:
 	const char *m_pGameType;
 
-	bool IsTeamplay() const;
-	bool IsGameOver() const { return m_GameOverTick != -1; }
+	virtual bool IsTeamplay() const;
+	virtual bool IsGameOver() const { return m_GameOverTick != -1; }
 
 	IGameController(class CGameContext *pGameServer);
 	virtual ~IGameController();
 
 	virtual void DoWincheck();
 
-	void DoWarmup(int Seconds);
-	void TogglePause();
+	virtual void DoWarmup(int Seconds);
+	virtual void TogglePause();
 
-	void StartRound();
-	void EndRound();
-	void ChangeMap(const char *pToMap);
+	virtual void StartRound();
+	virtual void EndRound();
+	virtual void ChangeMap(const char *pToMap);
 
-	bool IsFriendlyFire(int ClientID1, int ClientID2);
+	virtual bool IsFriendlyFire(int ClientID1, int ClientID2);
 
-	bool IsForceBalanced();
+	virtual bool IsForceBalanced();
 
 	/*
 
@@ -147,9 +147,9 @@ public:
 	virtual const char *GetTeamName(int Team);
 	virtual int GetAutoTeam(int NotThisID);
 	virtual bool CanJoinTeam(int Team, int NotThisID);
-	bool CheckTeamBalance();
-	bool CanChangeTeam(CPlayer *pPplayer, int JoinTeam);
-	int ClampTeam(int Team);
+	virtual bool CheckTeamBalance();
+	virtual bool CanChangeTeam(CPlayer *pPplayer, int JoinTeam);
+	virtual int ClampTeam(int Team);
 
 	virtual void PostReset();
 };

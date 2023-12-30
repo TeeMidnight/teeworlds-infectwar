@@ -11,6 +11,7 @@
 #include <game/gamecore.h>
 #include "infectwar/infectwar.h"
 
+#include <cstdarg>
 #include <string>
 
 enum
@@ -323,6 +324,18 @@ void CGameContext::SendBroadcast(const char *pText, int ClientID, int Ticks, int
 		}
 		m_aBroadcasts[BroadcastID] = (Broadcast);
 	}
+}
+
+void CGameContext::SendBroadcastFormat(const char *pText, int ClientID, int Ticks, int Layer, ...)
+{
+	char aBuffer[1024];
+
+	va_list args;
+	va_start(args, Layer);
+	str_format_list(aBuffer, sizeof(aBuffer), pText, args);
+	va_end(args);
+
+	SendBroadcast(aBuffer, ClientID, Ticks, Layer);
 }
 
 void CGameContext::DoBroadcastRefresh(int ClientID)
@@ -1688,3 +1701,17 @@ const char *CGameContext::Version() { return GAME_VERSION; }
 const char *CGameContext::NetVersion() { return GAME_NETVERSION; }
 
 IGameServer *CreateGameServer() { return new CGameContext; }
+
+int CGameContext::NumPlayers() const
+{
+	int Num = 0;
+	for(int i = 0;i < MAX_CLIENTS; i ++)
+	{
+		if(!m_apPlayers[i])
+			continue;
+		if(m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
+			continue;
+		Num ++;
+	}
+	return Num;
+}

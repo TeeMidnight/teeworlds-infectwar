@@ -12,7 +12,10 @@
 #include <stdlib.h>
 
 #ifdef __cplusplus
+#include <cstdarg>
 extern "C" {
+#else
+#include <stdarg.h>
 #endif
 
 /* Group: Debug */
@@ -734,10 +737,6 @@ int net_tcp_close(NETSOCKET sock);
 */
 void str_append(char *dst, const char *src, int dst_size);
 
-//TeeUniverses
-void str_append_num(char *dst, const char *src, int dst_size, int num);
-
-
 /*
 	Function: str_copy
 		Copies a string to another.
@@ -781,6 +780,23 @@ int str_length(const char *str);
 		- Garantees that dst string will contain zero-termination.
 */
 void str_format(char *buffer, int buffer_size, const char *format, ...);
+
+/*
+	Function: str_format_list
+		Performs printf formating into a buffer.
+
+	Parameters:
+		buffer - Pointer to the buffer to recive the formated string.
+		buffer_size - Size of the buffer.
+		format - printf formating string.
+		args - Parameters for the formating.
+
+	Remarks:
+		- See the C manual for syntax for the printf formating string.
+		- The strings are treated as zero-termineted strings.
+		- Garantees that dst string will contain zero-termination.
+*/
+void str_format_list(char *buffer, int buffer_size, const char *format, va_list args);
 
 /*
 	Function: str_sanitize_strong
@@ -994,6 +1010,26 @@ const char *str_find(const char *haystack, const char *needle);
 		- The desination buffer will be zero-terminated
 */
 void str_hex(char *dst, int dst_size, const void *data, int data_size);
+
+/*
+	Function: str_hex_decode
+		Takes a hex string *without spaces between bytes* and returns a
+		byte array.
+
+	Parameters:
+		dst - Buffer for the byte array
+		dst_size - size of the buffer
+		data - String to decode
+
+	Returns:
+		2 - String doesn't exactly fit the buffer
+		1 - Invalid character in string
+		0 - Success
+
+	Remarks:
+		- The contents of the buffer is only valid on success
+*/
+int str_hex_decode(void *dst, int dst_size, const char *src);
 
 /*
 	Function: str_timestamp
@@ -1319,6 +1355,23 @@ int secure_random_init();
 		length - Length of the buffer.
 */
 void secure_random_fill(void *bytes, size_t length);
+
+/*
+	Function: uint_to_bytes_be
+		Packs 4 big endian bytes into an unsigned.
+
+ 	Parameters: 
+		bytes - Pointer to an array of bytes that will be packed.
+
+	Returns:
+		The packed unsigned.
+
+	Remarks:
+		- Assumes the passed array is least 4 bytes in size.
+		- Assumes unsigned is 4 bytes in size.
+ *
+ */
+unsigned bytes_be_to_uint(const unsigned char *bytes);
 
 #ifdef __cplusplus
 }

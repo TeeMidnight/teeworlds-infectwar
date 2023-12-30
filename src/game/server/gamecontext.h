@@ -18,6 +18,8 @@
 #include <map>
 #include <utility>
 
+#define _(TEXT) TEXT
+
 /*
 	Tick
 		Game Context (CGameContext::tick)
@@ -168,6 +170,7 @@ public:
 	void SendEmoticon(int ClientID, int Emoticon);
 	void SendWeaponPickup(int ClientID, int Weapon);
 	void SendBroadcast(const char *pText, int ClientID, int Ticks = 150, int Layer = BCLAYER_SYSTEM);
+	void SendBroadcastFormat(const char *pText, int ClientID, int Ticks = 150, int Layer = BCLAYER_SYSTEM, ...);
 
 	void DoBroadcastRefresh(int ClientID);
 
@@ -202,6 +205,8 @@ public:
 	virtual const char *GameType();
 	virtual const char *Version();
 	virtual const char *NetVersion();
+
+	int NumPlayers() const;
 };
 
 inline int CmaskAll() { return -1; }

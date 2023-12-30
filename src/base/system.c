@@ -2,7 +2,6 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
@@ -1587,22 +1586,22 @@ int str_length(const char *str)
 
 void str_format(char *buffer, int buffer_size, const char *format, ...)
 {
+	va_list ap;
+	va_start(ap, format);
+	str_format_list(buffer, buffer_size, format, ap);
+	va_end(ap);
+}
+
+void str_format_list(char *buffer, int buffer_size, const char *format, va_list args)
+{
 #if defined(CONF_FAMILY_WINDOWS)
-	va_list ap;
-	va_start(ap, format);
-	_vsnprintf(buffer, buffer_size, format, ap);
-	va_end(ap);
+	_vsnprintf(buffer, buffer_size, format, args);
 #else
-	va_list ap;
-	va_start(ap, format);
-	vsnprintf(buffer, buffer_size, format, ap);
-	va_end(ap);
+	vsnprintf(buffer, buffer_size, format, args);
 #endif
 
 	buffer[buffer_size-1] = 0; /* assure null termination */
 }
-
-
 
 /* makes sure that the string only contains the characters between 32 and 127 */
 void str_sanitize_strong(char *str_in)
@@ -1766,6 +1765,65 @@ void str_hex(char *dst, int dst_size, const void *data, int data_size)
 		dst[b*3+2] = ' ';
 		dst[b*3+3] = 0;
 	}
+}
+
+static int hexval(char x)
+{
+	switch(x)
+	{
+	case '0': return 0;
+	case '1': return 1;
+	case '2': return 2;
+	case '3': return 3;
+	case '4': return 4;
+	case '5': return 5;
+	case '6': return 6;
+	case '7': return 7;
+	case '8': return 8;
+	case '9': return 9;
+	case 'a':
+	case 'A': return 10;
+	case 'b':
+	case 'B': return 11;
+	case 'c':
+	case 'C': return 12;
+	case 'd':
+	case 'D': return 13;
+	case 'e':
+	case 'E': return 14;
+	case 'f':
+	case 'F': return 15;
+	default: return -1;
+	}
+}
+
+static int byteval(const char *hex, unsigned char *dst)
+{
+	int v1 = hexval(hex[0]);
+	int v2 = hexval(hex[1]);
+
+	if(v1 < 0 || v2 < 0)
+		return 1;
+
+	*dst = v1 * 16 + v2;
+	return 0;
+}
+
+int str_hex_decode(void *dst, int dst_size, const char *src)
+{
+	unsigned char *cdst = (unsigned char *)dst;
+	int slen = str_length(src);
+	int len = slen / 2;
+	int i;
+	if(slen != dst_size * 2)
+		return 2;
+
+	for(i = 0; i < len && dst_size; i++, dst_size--)
+	{
+		if(byteval(src + i * 2, cdst++))
+			return 1;
+	}
+	return 0;
 }
 
 void str_timestamp(char *buffer, int buffer_size)
@@ -2115,6 +2173,11 @@ void secure_random_fill(void *bytes, size_t length)
 		dbg_break();
 	}
 #endif
+}
+
+unsigned bytes_be_to_uint(const unsigned char *bytes)
+{
+	return ((bytes[0] & 0xffu) << 24u) | ((bytes[1] & 0xffu) << 16u) | ((bytes[2] & 0xffu) << 8u) | (bytes[3] & 0xffu);
 }
 
 #if defined(__cplusplus)
