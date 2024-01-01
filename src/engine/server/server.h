@@ -3,6 +3,8 @@
 #ifndef ENGINE_SERVER_SERVER_H
 #define ENGINE_SERVER_SERVER_H
 
+#include <base/hash.h>
+
 #include <engine/server.h>
 
 
@@ -85,6 +87,7 @@ public:
 		enum
 		{
 			STATE_EMPTY = 0,
+			STATE_PREAUTH,
 			STATE_AUTH,
 			STATE_CONNECTING,
 			STATE_READY,
@@ -128,6 +131,12 @@ public:
 		const IConsole::CCommandInfo *m_pRconCmdToSend;
 
 		void Reset();
+		// ddnet
+		bool m_GotDDNetVersionPacket;
+		bool m_DDNetVersionSettled;
+		int m_DDNetVersion;
+		char m_aDDNetVersionStr[64];
+		CUuid m_ConnectionID;
 	};
 
 	CClient m_aClients[MAX_CLIENTS];
@@ -154,6 +163,7 @@ public:
 	//static NETADDR4 master_server;
 
 	char m_aCurrentMap[64];
+	SHA256_DIGEST m_CurrentMapSha256;
 	unsigned m_CurrentMapCrc;
 	unsigned char *m_pCurrentMapData;
 	unsigned int m_CurrentMapSize;
@@ -206,6 +216,7 @@ public:
 	static int DelClientCallback(int ClientID, const char *pReason, void *pUser);
 
 	void SendMap(int ClientID);
+	void SendCapabilities(int ClientID);
 	void SendConnectionReady(int ClientID);
 	void SendRconLine(int ClientID, const char *pLine);
 	static void SendRconLineAuthed(const char *pLine, void *pUser);

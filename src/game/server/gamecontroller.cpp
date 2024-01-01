@@ -597,13 +597,12 @@ void IGameController::Snap(int SnappingClient)
 	pGameInfoObj->m_RoundNum = (str_length(g_Config.m_SvMaprotation) && g_Config.m_SvRoundsPerMap) ? g_Config.m_SvRoundsPerMap : 0;
 	pGameInfoObj->m_RoundCurrent = m_RoundCount+1;
 
-	/*
 	CNetObj_GameInfoEx *pGameInfoExObj = (CNetObj_GameInfoEx *)Server()->SnapNewItem(NETOBJTYPE_GAMEINFOEX, 0, sizeof(CNetObj_GameInfoEx));
 	if(!pGameInfoExObj)
 		return;
 	pGameInfoExObj->m_Flags = GAMEINFOFLAG_ENTITIES_VANILLA | GAMEINFOFLAG_PREDICT_VANILLA | GAMEINFOFLAG_GAMETYPE_VANILLA;
 	pGameInfoExObj->m_Flags2 = GAMEINFOFLAG2_HUD_HEALTH_ARMOR | GAMEINFOFLAG2_HUD_AMMO;
-	*/
+	pGameInfoExObj->m_Version = GAMEINFO_CURVERSION;
 }
 
 int IGameController::GetAutoTeam(int NotThisID)

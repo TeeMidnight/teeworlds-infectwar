@@ -847,4 +847,29 @@ void CCharacter::Snap(int SnappingClient)
 	}
 
 	pCharacter->m_PlayerFlags = GetPlayer()->m_PlayerFlags;
+
+	CNetObj_DDNetCharacter *pDDNetCharacter = static_cast<CNetObj_DDNetCharacter *>(Server()->SnapNewItem(NETOBJTYPE_DDNETCHARACTER, id, sizeof(CNetObj_DDNetCharacter)));
+	if(!pDDNetCharacter)
+		return;
+	int* Flags = &pDDNetCharacter->m_Flags;
+	for(int i = 0; i < NUM_WEAPONS; i ++)
+	{
+		if(m_aWeapons[i].m_Got)
+		{
+			*Flags |= 1<<(14 + i);
+		}
+	}
+
+	pDDNetCharacter->m_FreezeStart = 0;
+	pDDNetCharacter->m_FreezeEnd =	0;
+
+	pDDNetCharacter->m_JumpedTotal = m_Core.m_JumpCounter;
+	pDDNetCharacter->m_Jumps = m_Core.m_MaxJumps;
+	pDDNetCharacter->m_TeleCheckpoint = 0;
+	pDDNetCharacter->m_StrongWeakID = 0; // unused
+
+	pDDNetCharacter->m_NinjaActivationTick = m_Ninja.m_ActivationTick;
+
+	pDDNetCharacter->m_TargetX = m_Core.m_Input.m_TargetX;
+	pDDNetCharacter->m_TargetY = m_Core.m_Input.m_TargetY;
 }

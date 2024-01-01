@@ -366,6 +366,12 @@ generate_source("src/game/generated/server_data.h" "server_content_header")
 # Sources
 set_glob(BASE GLOB_RECURSE src/base
   detect.h
+  hash.cpp
+  hash.h
+  hash_bundled.cpp
+  hash_ctxt.h
+  hash_libtomcrypt.cpp
+  hash_openssl.cpp
   math.h
   system.c
   system.h
@@ -390,6 +396,7 @@ set_glob(ENGINE_INTERFACE GLOB src/engine
   message.h
   server.h
   storage.h
+  uuid.h
 )
 set_glob(ENGINE_SHARED GLOB src/engine/shared
   compression.cpp
@@ -408,6 +415,7 @@ set_glob(ENGINE_SHARED GLOB src/engine/shared
   engine.cpp
   filecollection.cpp
   filecollection.h
+  global_uuid_manager.cpp # ddnet
   huffman.cpp
   huffman.h
   jobs.cpp
@@ -433,11 +441,26 @@ set_glob(ENGINE_SHARED GLOB src/engine/shared
   packer.cpp
   packer.h
   protocol.h
+  protocol_ex.cpp  # ddnet
+  protocol_ex.h  # ddnet
+  protocol_ex_msgs.h  # ddnet
   ringbuffer.cpp
   ringbuffer.h
   snapshot.cpp
   snapshot.h
   storage.cpp
+  teehistorian_ex.cpp  # ddnet
+  teehistorian_ex.h  # ddnet
+  teehistorian_ex_chunks.h  # ddnet
+  uuid_manager.cpp  # ddnet
+  uuid_manager.h  # ddnet
+)
+## ddnet
+# A bit hacky, but these are needed to register all the UUIDs, even for stuff
+# that doesn't link game.
+set(ENGINE_UUID_SHARED
+  src/game/generated/protocol.cpp
+  src/game/generated/protocol.h
 )
 set(ENGINE_GENERATED_SHARED src/game/generated/protocol.cpp src/game/generated/protocol.h)
 set_glob(GAME_SHARED GLOB src/game
@@ -464,7 +487,7 @@ set(DEPS ${DEP_MD5} ${ZLIB_DEP})
 set(LIBS ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARIES} ${PLATFORM_LIBS})
 
 # Targets
-add_library(engine-shared EXCLUDE_FROM_ALL OBJECT ${ENGINE_INTERFACE} ${ENGINE_SHARED} ${ENGINE_GENERATED_SHARED} ${BASE})
+add_library(engine-shared EXCLUDE_FROM_ALL OBJECT ${ENGINE_INTERFACE} ${ENGINE_SHARED} ${ENGINE_GENERATED_SHARED}  ${ENGINE_UUID_SHARED} ${BASE})
 add_library(game-shared EXCLUDE_FROM_ALL OBJECT ${GAME_SHARED} ${GAME_GENERATED_SHARED})
 list(APPEND TARGETS_OWN engine-shared game-shared)
 

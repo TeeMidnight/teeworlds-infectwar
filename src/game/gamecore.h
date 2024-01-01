@@ -185,6 +185,10 @@ public:
 	int m_HookTick;
 	int m_HookState;
 	int m_HookedPlayer;
+	
+	bool m_InfniteJumps;
+	int m_MaxJumps;
+	int m_JumpCounter;
 
 	int m_Jumped;
 

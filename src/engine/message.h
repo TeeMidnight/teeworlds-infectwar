@@ -4,14 +4,15 @@
 #define ENGINE_MESSAGE_H
 
 #include <engine/shared/packer.h>
+#include <engine/shared/uuid_manager.h>
 
 class CMsgPacker : public CPacker
 {
 public:
-	CMsgPacker(int Type)
+	int m_MsgID;
+	CMsgPacker(int Type) : m_MsgID(Type)
 	{
 		Reset();
-		AddInt(Type);
 	}
 };
 

@@ -1357,7 +1357,7 @@ int secure_random_init();
 void secure_random_fill(void *bytes, size_t length);
 
 /*
-	Function: uint_to_bytes_be
+	Function: bytes_be_to_uint
 		Packs 4 big endian bytes into an unsigned.
 
  	Parameters: 
@@ -1369,9 +1369,23 @@ void secure_random_fill(void *bytes, size_t length);
 	Remarks:
 		- Assumes the passed array is least 4 bytes in size.
 		- Assumes unsigned is 4 bytes in size.
- *
- */
+*/
 unsigned bytes_be_to_uint(const unsigned char *bytes);
+
+/*
+	Function: uint_to_bytes_be
+  		Packs an unsigned into 4 big endian bytes.
+	
+	Parameters:
+  		bytes - Pointer to an array where the bytes will be stored.
+  		value - The values that will be packed into the array.
+	
+	Remarks:
+ 		- Assumes the passed array is least 4 bytes in size.
+ 		- Assumes unsigned is 4 bytes in size.
+*/
+void uint_to_bytes_be(unsigned char *bytes, unsigned value);
+
 
 #ifdef __cplusplus
 }
