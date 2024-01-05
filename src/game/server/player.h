@@ -7,6 +7,14 @@
 #include "entities/character.h"
 #include "gamecontext.h"
 
+struct CTeeInfo
+{
+	char m_SkinName[64];
+	int m_UseCustomColor;
+	int m_ColorBody;
+	int m_ColorFeet;
+};
+
 // player object
 class CPlayer
 {
@@ -63,14 +71,7 @@ public:
 	int m_LastEmote;
 	int m_LastKill;
 
-	// TODO: clean this up
-	struct
-	{
-		char m_SkinName[64];
-		int m_UseCustomColor;
-		int m_ColorBody;
-		int m_ColorFeet;
-	} m_TeeInfos;
+	CTeeInfo m_TeeInfos;
 
 	int m_RespawnTick;
 	int m_DieTick;

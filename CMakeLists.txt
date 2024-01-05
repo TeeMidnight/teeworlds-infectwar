@@ -513,6 +513,8 @@ set_glob(GAME_SERVER GLOB_RECURSE src/game/server
   entities/pickup.h
   entities/projectile.cpp
   entities/projectile.h
+  entities/turret.cpp
+  entities/turret.h
   entity.cpp
   entity.h
   eventhandler.cpp

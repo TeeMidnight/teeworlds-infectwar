@@ -140,7 +140,7 @@ public:
 	};
 
 	CClient m_aClients[MAX_CLIENTS];
-	int m_aIdMap[MAX_CLIENTS * VANILLA_MAX_CLIENTS];
+	CIdMap m_aIdMap[MAX_CLIENTS];
 
 	CSnapshotDelta m_SnapshotDelta;
 	CSnapshotBuilder m_SnapshotBuilder;
@@ -259,7 +259,8 @@ public:
 	virtual void *SnapNewItem(int Type, int ID, int Size);
 	void SnapSetStaticsize(int ItemType, int Size);
 
-	virtual int* GetIdMap(int ClientID);
+	virtual CIdMap* GetIdMap(int ClientID);
+	virtual int GetClientMaxSnap(int ClientID);
 	virtual void SetCustClt(int ClientID);
 };
 

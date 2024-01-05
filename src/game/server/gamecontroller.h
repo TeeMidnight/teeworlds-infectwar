@@ -91,6 +91,7 @@ public:
 	virtual void Tick();
 
 	virtual void Snap(int SnappingClient);
+	virtual void SnapEx(int SnappingClient);
 
 	/*
 		Function: OnEntity

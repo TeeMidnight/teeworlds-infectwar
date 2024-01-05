@@ -4,6 +4,7 @@
 
 class CGameControllerInfectWar : public IGameController
 {
+	int m_LastTurretID;
 public:
 	CGameControllerInfectWar(class CGameContext *pGameServer);
 
@@ -17,9 +18,14 @@ public:
 	void DoNinjaBar();
 
 	// overrides
+	bool OnEntity(int Index, vec2 Pos) override;
+
 	int ClampTeam(int Team) override;
 	int GetAutoTeam(int NotThisID) override;
+	
 	void Snap(int SnappingClient) override;
+	void SnapEx(int SnappingClient) override;
+
 	void Tick() override;
 	void DoWincheck() override;
 	void OnClientConnected(int ClientID) override;

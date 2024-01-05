@@ -22,12 +22,9 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_LastActionTick = Server()->Tick();
 	m_TeamChangeTick = Server()->Tick();
 
-	int* idMap = Server()->GetIdMap(ClientID);
-	for (int i = 1;i < VANILLA_MAX_CLIENTS;i++)
-	{
-	    idMap[i] = -1;
-	}
-	idMap[0] = ClientID;
+	CIdMap* idMap = Server()->GetIdMap(ClientID);
+	(*idMap).clear();
+	(*idMap)[0] = ClientID;
 }
 
 CPlayer::~CPlayer()
@@ -131,9 +128,19 @@ void CPlayer::Snap(int SnappingClient)
 	StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
 	pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
 	StrToInts(&pClientInfo->m_Skin0, 6, m_TeeInfos.m_SkinName);
-	pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
+
 	pClientInfo->m_ColorBody = m_TeeInfos.m_ColorBody;
 	pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
+
+	if(m_Team == TEAM_RED)
+	{
+		pClientInfo->m_UseCustomColor = 1;
+		pClientInfo->m_ColorBody = 3866368;
+		pClientInfo->m_ColorFeet = 3866368;
+	}else
+	{
+		pClientInfo->m_UseCustomColor = 0;
+	}
 
 	CNetObj_PlayerInfo *pPlayerInfo = static_cast<CNetObj_PlayerInfo *>(Server()->SnapNewItem(NETOBJTYPE_PLAYERINFO, id, sizeof(CNetObj_PlayerInfo)));
 	if(!pPlayerInfo)

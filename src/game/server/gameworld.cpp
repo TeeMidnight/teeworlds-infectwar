@@ -9,6 +9,8 @@
 #include <utility>
 #include <engine/shared/config.h>
 
+#include "entities/turret.h"
+
 //////////////////////////////////////////////////
 // game world
 //////////////////////////////////////////////////
@@ -256,15 +258,17 @@ void CGameWorld::UpdatePlayerMaps()
 {
 	if (Server()->Tick() % g_Config.m_SvMapUpdateRate != 0) return;
 
-	std::pair<float,int> dist[MAX_CLIENTS];
+	std::vector<std::pair<float,int>> dist;
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
+		int MaxSnap = Server()->GetClientMaxSnap(i);
 		if (!Server()->ClientIngame(i)) continue;
-		int* map = Server()->GetIdMap(i);
+		CIdMap* map = Server()->GetIdMap(i);
 
 		// compute distances
 		for (int j = 0; j < MAX_CLIENTS; j++)
 		{
+			dist.push_back(std::make_pair(0.f, 0));
 			dist[j].second = j;
 			dist[j].first = 1e10;
 			if (!Server()->ClientIngame(j))
@@ -272,44 +276,46 @@ void CGameWorld::UpdatePlayerMaps()
 
 			dist[j].first = distance(GameServer()->m_apPlayers[i]->m_ViewPos, GameServer()->m_apPlayers[j]->m_ViewPos);
 		}
+		
+		int mcount = MAX_CLIENTS;
+		for(CTurret *pEnt = (CTurret *) m_apFirstEntityTypes[ENTTYPE_TURRET]; pEnt; pEnt = (CTurret *) pEnt->m_pNextTypeEntity)
+		{
+			dist.push_back(std::make_pair(0.f, 0));
+			dist[mcount].second = pEnt->m_TurretID;
+			dist[mcount].first = 1e7 + distance(GameServer()->m_apPlayers[i]->m_ViewPos, pEnt->m_Pos); // last snap turret
+			mcount ++;
+		}
 
 		// always send the player himself
 		dist[i].first = 0;
 
-		// compute reverse map
-		int rMap[MAX_CLIENTS];
-		for (int j = 0; j < MAX_CLIENTS; j++)
+		mcount = 0;
+
+		for (int j = 0; j < MaxSnap; j++)
 		{
-			rMap[j] = -1;
-		}
-		for (int j = 0; j < VANILLA_MAX_CLIENTS; j++)
-		{
-			if (map[j] == -1) continue;
-			if (dist[map[j]].first > 1e9) map[j] = -1;
-			else rMap[map[j]] = j;
+			if (!(*map).count(j)) 
+				continue;
+			if (dist[(*map)[j]].first > 1e9) 
+			{
+				(*map).erase(mcount);
+				mcount --;
+			}
+			mcount ++;
 		}
 
-		std::nth_element(&dist[0], &dist[VANILLA_MAX_CLIENTS - 1], &dist[MAX_CLIENTS], distCompare);
+		std::sort(dist.begin(), dist.end());
 
-		int mapc = 0;
-		int demand = 0;
-		for (int j = 0; j < VANILLA_MAX_CLIENTS - 1; j++)
+		mcount = 0;
+		for (int j = 0; j < MaxSnap - 1; j++)
 		{
-			int k = dist[j].second;
-			if (rMap[k] != -1 || dist[j].first > 1e9) continue;
-			while (mapc < VANILLA_MAX_CLIENTS && map[mapc] != -1) mapc++;
-			if (mapc < VANILLA_MAX_CLIENTS - 1)
-				map[mapc] = k;
+			if((*map).count(dist[j].second))
+				continue;
+			while((*map).count(mcount) && mcount < MaxSnap - 1) mcount ++;
+			if(mcount < MaxSnap - 1)
+				(*map)[mcount] = dist[j].second;
 			else
-				if (dist[j].first < 1300) // dont bother freeing up space for players which are too far to be displayed anyway
-					demand++;
+				break;
 		}
-		for (int j = MAX_CLIENTS - 1; j > VANILLA_MAX_CLIENTS - 2; j--)
-		{
-			int k = dist[j].second;
-			if (rMap[k] != -1 && demand-- > 0)
-				map[rMap[k]] = -1;
-		}
-		map[VANILLA_MAX_CLIENTS - 1] = -1; // player with empty name to say chat msgs
+		(*map).erase(MaxSnap - 1);
 	}
 }

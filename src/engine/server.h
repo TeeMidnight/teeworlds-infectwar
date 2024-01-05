@@ -8,6 +8,10 @@
 #include <game/generated/protocol.h>
 #include <engine/shared/protocol.h>
 
+#include <map>
+
+using CIdMap = std::map<int, int>;
+
 class IServer : public IInterface
 {
 	MACRO_INTERFACE("server", 0)
@@ -78,7 +82,7 @@ public:
 		{
 			str_format(msgbuf, sizeof(msgbuf), "%s: %s", ClientName(pMsg->m_ClientID), pMsg->m_pMessage);
 			pMsg->m_pMessage = msgbuf;
-			pMsg->m_ClientID = VANILLA_MAX_CLIENTS - 1;
+			pMsg->m_ClientID = GetClientMaxSnap(ClientID) / 4 * 3 - 1;
 		}
 		return SendPackMsgOne(pMsg, Flags, ClientID);
 	}
@@ -101,17 +105,13 @@ public:
 
 	bool Translate(int& target, int client)
 	{
-		CClientInfo info;
-		GetClientInfo(client, &info);
-		if (info.m_CustClt)
-			return true;
-		int* map = GetIdMap(client);
+		CIdMap* map = GetIdMap(client);
 		bool found = false;
-		for (int i = 0; i < VANILLA_MAX_CLIENTS; i++)
+		for (auto i : (*map))
 		{
-			if (target == map[i])
+			if (target == i.second)
 			{
-				target = i;
+				target = i.first;
 				found = true;
 				break;
 			}
@@ -121,14 +121,10 @@ public:
 
 	bool ReverseTranslate(int& target, int client)
 	{
-		CClientInfo info;
-		GetClientInfo(client, &info);
-		if (info.m_CustClt)
-			return true;
-		int* map = GetIdMap(client);
-		if (map[target] == -1)
+		CIdMap* map = GetIdMap(client);
+		if ((*map).count(target))
 			return false;
-		target = map[target];
+		target = (*map)[target];
 		return true;
 	}
 
@@ -155,7 +151,8 @@ public:
 	virtual void DemoRecorder_HandleAutoStart() = 0;
 	virtual bool DemoRecorder_IsRecording() = 0;
 
-	virtual int* GetIdMap(int ClientID) = 0;
+	virtual CIdMap* GetIdMap(int ClientID) = 0;
+	virtual int GetClientMaxSnap(int ClientID) = 0;
 	virtual void SetCustClt(int ClientID) = 0;
 };
 

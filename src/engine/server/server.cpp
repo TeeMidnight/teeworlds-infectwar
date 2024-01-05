@@ -2021,9 +2021,14 @@ int main(int argc, const char **argv) // ignore_convention
 	return 0;
 }
 
-int* CServer::GetIdMap(int ClientID)
+CIdMap* CServer::GetIdMap(int ClientID)
 {
-	return (int*)(m_aIdMap + VANILLA_MAX_CLIENTS * ClientID);
+	return &m_aIdMap[ClientID];
+}
+
+int CServer::GetClientMaxSnap(int ClientID)
+{
+	return m_aClients[ClientID].m_CustClt ? DDNET_MAX_CLIENTS : VANILLA_MAX_CLIENTS;
 }
 
 void CServer::SetCustClt(int ClientID)
