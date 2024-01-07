@@ -314,6 +314,18 @@ int CGameControllerInfectWar::OnCharacterDeath(class CCharacter *pVictim, int Ki
 		}
 	}
 
+	if(pVictim->GetPlayer()->GetTeam() == TEAM_RED)
+	{
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, random_int(POWERUP_HEALTH, POWERUP_ARMOR));
+		pPickup->m_Pos = pVictim->m_Pos;
+		pPickup->m_StartPos = pVictim->m_Pos;
+		pPickup->m_Direction = vec2(0, 1);
+		pPickup->m_Gravity = true;
+		pPickup->m_NextRound = false;
+		pPickup->m_OneTime = true; // only pick one time
+		pPickup->m_StartTick = Server()->Tick();
+	}
+
 	return 0;
 }
 
@@ -435,6 +447,8 @@ void CGameControllerInfectWar::OnCharacterSpawn(class CCharacter *pChr)
 	int Health = 10;
 	if(pChr->GetPlayer()->GetTeam() == TEAM_RED)
 		Health += pChr->GetPlayer()->m_DeathNum * 2; // stronger infect
+	else
+		pChr->IncreaseArmor(2);
 	pChr->IncreaseHealth(Health, true);
 
 	// give default weapons
