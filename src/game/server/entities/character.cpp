@@ -902,6 +902,9 @@ void CCharacter::Snap(int SnappingClient)
 		}
 	}
 
+	if(m_pPlayer->m_FakeSpec)
+		*Flags |= CHARACTERFLAG_MOVEMENTS_DISABLED;
+
 	pDDNetCharacter->m_FreezeStart = 0;
 	pDDNetCharacter->m_FreezeEnd =	0;
 
