@@ -194,7 +194,7 @@ void CTurret::DoAttacker()
 void CTurret::DoPlacer()
 {
 	int RespawnTime = g_pData->m_aPickups[POWERUP_WEAPON].m_Respawntime * 2;
-	if(Server()->Tick() <= m_AttackTick + RespawnTime)
+	if(Server()->Tick() >= m_AttackTick + RespawnTime)
 	{
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_WEAPON, m_Type);
 		pPickup->m_Pos = m_Pos;
