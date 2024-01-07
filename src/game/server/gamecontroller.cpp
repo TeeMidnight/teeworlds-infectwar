@@ -125,6 +125,14 @@ bool IGameController::CanSpawn(int Team, vec2 *pOutPos)
 	return Eval.m_Got;
 }
 
+bool IGameController::PlayerPickable(class CCharacter *pChr)
+{
+	if(!pChr)
+		return false;
+	if(!pChr->IsAlive())
+		return false;
+	return true;
+}
 
 bool IGameController::OnEntity(int Index, vec2 Pos)
 {
@@ -166,6 +174,8 @@ bool IGameController::OnEntity(int Index, vec2 Pos)
 	{
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, Type, SubType);
 		pPickup->m_Pos = Pos;
+		pPickup->m_Gravity = false;
+		pPickup->m_OneTime = false;
 		return true;
 	}
 
@@ -314,34 +324,36 @@ void IGameController::PostReset()
 		{
 			GameServer()->m_apPlayers[i]->Respawn();
 			GameServer()->m_apPlayers[i]->m_Score = 0;
+			GameServer()->m_apPlayers[i]->m_DeathNum = 0;
 			GameServer()->m_apPlayers[i]->m_ScoreStartTick = Server()->Tick();
 			GameServer()->m_apPlayers[i]->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
 		}
 	}
 }
 
-void IGameController::OnPlayerInfoChange(class CPlayer *pP)
+void IGameController::OnPlayerInfoChange(class CPlayer *pPlayer)
 {
 	const int aTeamColors[2] = {65387, 10223467};
 	if(IsTeamplay())
 	{
-		pP->m_TeeInfos.m_UseCustomColor = 1;
-		if(pP->GetTeam() >= TEAM_RED && pP->GetTeam() <= TEAM_BLUE)
+		pPlayer->m_TeeInfos.m_UseCustomColor = 1;
+		if(pPlayer->GetTeam() >= TEAM_RED && pPlayer->GetTeam() <= TEAM_BLUE)
 		{
-			pP->m_TeeInfos.m_ColorBody = aTeamColors[pP->GetTeam()];
-			pP->m_TeeInfos.m_ColorFeet = aTeamColors[pP->GetTeam()];
+			pPlayer->m_TeeInfos.m_ColorBody = aTeamColors[pPlayer->GetTeam()];
+			pPlayer->m_TeeInfos.m_ColorFeet = aTeamColors[pPlayer->GetTeam()];
 		}
 		else
 		{
-			pP->m_TeeInfos.m_ColorBody = 12895054;
-			pP->m_TeeInfos.m_ColorFeet = 12895054;
+			pPlayer->m_TeeInfos.m_ColorBody = 12895054;
+			pPlayer->m_TeeInfos.m_ColorFeet = 12895054;
 		}
 	}
 }
 
 
-int IGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
+int IGameController::OnCharacterDeath(class CCharacter *pVictim, int Killer, int Weapon)
 {
+	CPlayer *pKiller = GameServer()->m_apPlayers[Killer];
 	// do scoreing
 	if(!pKiller || Weapon == WEAPON_GAME)
 		return 0;
@@ -353,6 +365,7 @@ int IGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *
 			pKiller->m_Score--; // teamkill
 		else
 			pKiller->m_Score++; // normal kill
+		pVictim->GetPlayer()->m_DeathNum ++;
 	}
 	if(Weapon == WEAPON_SELF)
 		pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*3.0f;
@@ -451,7 +464,7 @@ void IGameController::Tick()
 	if(m_GameOverTick != -1)
 	{
 		// game over.. wait for restart
-		if(Server()->Tick() > m_GameOverTick+Server()->TickSpeed()*10)
+		if(Server()->Tick() > m_GameOverTick+Server()->TickSpeed()*3)
 		{
 			CycleMap();
 			StartRound();
@@ -714,6 +727,31 @@ bool IGameController::CanChangeTeam(CPlayer *pPlayer, int JoinTeam)
 	}
 	else
 		return true;
+}
+
+void IGameController::OnPlayerJoinTeam(CPlayer *pPlayer, int JoinTeam)
+{
+	// Switch team on given client and kill/respawn him
+	int ClientID = pPlayer->GetCID();
+	if(CanJoinTeam(JoinTeam, ClientID))
+	{
+		if(CanChangeTeam(pPlayer, JoinTeam))
+		{
+			pPlayer->m_LastSetTeam = Server()->Tick();
+			if(pPlayer->GetTeam() == TEAM_SPECTATORS || JoinTeam == TEAM_SPECTATORS)
+				GameServer()->m_VoteUpdate = true;
+			pPlayer->SetTeam(JoinTeam);
+			(void)CheckTeamBalance();
+			pPlayer->m_TeamChangeTick = Server()->Tick();
+		}
+		else
+			GameServer()->SendBroadcast(ClientID, _("Teams must be balanced, please join other team"));
+	}
+	else
+	{
+		GameServer()->SendBroadcastFormat(ClientID, _("Only %d active players are allowed"), 
+			150, BCLAYER_SYSTEM, Server()->MaxClients()-g_Config.m_SvSpectatorSlots);
+	}
 }
 
 void IGameController::DoWincheck()

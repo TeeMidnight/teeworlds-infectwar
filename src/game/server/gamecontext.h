@@ -167,10 +167,12 @@ public:
 	// network
 	void SendChatTarget(int To, const char *pText);
 	void SendChat(int ClientID, int Team, const char *pText);
+	void SendChatTargetFormat(int To, const char *pText, ...);
+	void SendChatFormat(int ClientID, int Team, const char *pText, ...);
 	void SendEmoticon(int ClientID, int Emoticon);
 	void SendWeaponPickup(int ClientID, int Weapon);
-	void SendBroadcast(const char *pText, int ClientID, int Ticks = 150, int Layer = BCLAYER_SYSTEM);
-	void SendBroadcastFormat(const char *pText, int ClientID, int Ticks = 150, int Layer = BCLAYER_SYSTEM, ...);
+	void SendBroadcast(int ClientID, const char *pText, int Ticks = 150, int Layer = BCLAYER_SYSTEM);
+	void SendBroadcastFormat(int ClientID, const char *pText, int Ticks, int Layer, ...);
 
 	void DoBroadcastRefresh(int ClientID);
 
@@ -205,8 +207,6 @@ public:
 	virtual const char *GameType();
 	virtual const char *Version();
 	virtual const char *NetVersion();
-
-	int NumPlayers() const;
 };
 
 inline int CmaskAll() { return -1; }

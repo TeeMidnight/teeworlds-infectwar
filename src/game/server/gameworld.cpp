@@ -261,56 +261,66 @@ void CGameWorld::UpdatePlayerMaps()
 	std::vector<std::pair<float,int>> dist;
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
+		dist.clear();
+		
+		if (!Server()->ClientIngame(i)) 
+			continue;
 		int MaxSnap = Server()->GetClientMaxSnap(i);
-		if (!Server()->ClientIngame(i)) continue;
 		CIdMap* map = Server()->GetIdMap(i);
 
 		// compute distances
 		for (int j = 0; j < MAX_CLIENTS; j++)
 		{
-			dist.push_back(std::make_pair(0.f, 0));
-			dist[j].second = j;
-			dist[j].first = 1e10;
+			dist.push_back(std::make_pair(1e10, j));
 			if (!Server()->ClientIngame(j))
 				continue;
 
 			dist[j].first = distance(GameServer()->m_apPlayers[i]->m_ViewPos, GameServer()->m_apPlayers[j]->m_ViewPos);
 		}
-		
-		int mcount = MAX_CLIENTS;
-		for(CTurret *pEnt = (CTurret *) m_apFirstEntityTypes[ENTTYPE_TURRET]; pEnt; pEnt = (CTurret *) pEnt->m_pNextTypeEntity)
-		{
-			dist.push_back(std::make_pair(0.f, 0));
-			dist[mcount].second = pEnt->m_TurretID;
-			dist[mcount].first = 1e7 + distance(GameServer()->m_apPlayers[i]->m_ViewPos, pEnt->m_Pos); // last snap turret
-			mcount ++;
-		}
-
 		// always send the player himself
 		dist[i].first = 0;
 
-		mcount = 0;
-
-		for (int j = 0; j < MaxSnap; j++)
+		int mcount = MAX_CLIENTS;
+		for(CTurret *pEnt = (CTurret *) m_apFirstEntityTypes[ENTTYPE_TURRET]; pEnt; pEnt = (CTurret *) pEnt->m_pNextTypeEntity)
 		{
-			if (!(*map).count(j)) 
-				continue;
-			if (dist[(*map)[j]].first > 1e9) 
-			{
-				(*map).erase(mcount);
-				mcount --;
-			}
+			dist.push_back(std::make_pair(5e8 + distance(GameServer()->m_apPlayers[i]->m_ViewPos, pEnt->m_Pos), pEnt->m_TurretID));
 			mcount ++;
 		}
 
 		std::sort(dist.begin(), dist.end());
 
+		for (int j = 0; j < (int) dist.size(); j ++)
+		{
+			if (dist[j].first > 1e9) 
+			{			
+				for (auto k : (*map))
+				{
+					if (k.second == dist[j].second)
+					{
+						(*map).erase(k.first);
+						break;
+					}
+				}
+			}
+		}
+
 		mcount = 0;
 		for (int j = 0; j < MaxSnap - 1; j++)
 		{
-			if((*map).count(dist[j].second))
+			bool Found = false;
+			for (auto k : (*map))
+			{
+				if (k.second == dist[j].second)
+				{
+					Found = true;
+					break;
+				}
+			}
+			if(Found)
 				continue;
-			while((*map).count(mcount) && mcount < MaxSnap - 1) mcount ++;
+
+			while((*map).count(mcount) && mcount < MaxSnap - 1) 
+				mcount ++;
 			if(mcount < MaxSnap - 1)
 				(*map)[mcount] = dist[j].second;
 			else

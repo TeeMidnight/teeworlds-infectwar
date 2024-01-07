@@ -24,7 +24,6 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 
 	CIdMap* idMap = Server()->GetIdMap(ClientID);
 	(*idMap).clear();
-	(*idMap)[0] = ClientID;
 }
 
 CPlayer::~CPlayer()
@@ -109,6 +108,13 @@ void CPlayer::PostTick()
 	// update view pos for spectators
 	if(m_Team == TEAM_SPECTATORS && m_SpectatorID != SPEC_FREEVIEW && GameServer()->m_apPlayers[m_SpectatorID])
 		m_ViewPos = GameServer()->m_apPlayers[m_SpectatorID]->m_ViewPos;
+
+	if(m_ForceBalanced)
+	{
+		GameServer()->SendBroadcastFormat(m_ClientID, "You were moved to %s due to team balancing", 150, BCLAYER_SYSTEM, GameServer()->m_pController->GetTeamName(m_Team));
+
+		m_ForceBalanced = false;
+	}
 }
 
 void CPlayer::Snap(int SnappingClient)
@@ -129,18 +135,9 @@ void CPlayer::Snap(int SnappingClient)
 	pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
 	StrToInts(&pClientInfo->m_Skin0, 6, m_TeeInfos.m_SkinName);
 
+	pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
 	pClientInfo->m_ColorBody = m_TeeInfos.m_ColorBody;
 	pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
-
-	if(m_Team == TEAM_RED)
-	{
-		pClientInfo->m_UseCustomColor = 1;
-		pClientInfo->m_ColorBody = 3866368;
-		pClientInfo->m_ColorFeet = 3866368;
-	}else
-	{
-		pClientInfo->m_UseCustomColor = 0;
-	}
 
 	CNetObj_PlayerInfo *pPlayerInfo = static_cast<CNetObj_PlayerInfo *>(Server()->SnapNewItem(NETOBJTYPE_PLAYERINFO, id, sizeof(CNetObj_PlayerInfo)));
 	if(!pPlayerInfo)

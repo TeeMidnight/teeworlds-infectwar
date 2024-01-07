@@ -24,8 +24,72 @@ void CPickup::Reset()
 		m_SpawnTick = -1;
 }
 
+vec2 CPickup::GetPos(float Time)
+{
+	float Curvature = GameServer()->Tuning()->m_GrenadeCurvature;
+	float Speed = GameServer()->Tuning()->m_GrenadeSpeed;
+
+	return CalcPos(m_StartPos, m_Direction, Curvature, Speed, Time);
+}
+
 void CPickup::Tick()
 {
+	if(m_Gravity)
+	{
+		float Pt = (Server()->Tick()-m_StartTick-1)/(float)Server()->TickSpeed();
+		float Ct = (Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed();
+		vec2 PrevPos = GetPos(Pt);
+		vec2 CurPos = GetPos(Ct);
+
+		if(GameLayerClipped(CurPos))
+		{
+			GameServer()->m_World.DestroyEntity(this);
+			return;
+		}
+		
+		m_Pos = CurPos;
+		// Thanks to LastDay
+		vec2 LastPos;
+		int Collide = GameServer()->Collision()->IntersectLine(PrevPos, CurPos, NULL, &LastPos);
+		if(Collide)
+		{
+			//Thanks to TeeBall 0.6
+			vec2 CollisionPos;
+			CollisionPos.x = LastPos.x;
+			CollisionPos.y = CurPos.y;
+			int CollideY = GameServer()->Collision()->IntersectLine(PrevPos, CollisionPos, NULL, NULL);
+			CollisionPos.x = CurPos.x;
+			CollisionPos.y = LastPos.y;
+			int CollideX = GameServer()->Collision()->IntersectLine(PrevPos, CollisionPos, NULL, NULL);
+			
+			m_StartPos = LastPos;
+			m_Pos = m_StartPos;
+			vec2 vel;
+			vel.x = m_Direction.x;
+			vel.y = m_Direction.y + 2*GameServer()->Tuning()->m_GrenadeCurvature/10000*Ct*GameServer()->Tuning()->m_GrenadeSpeed;
+			
+			if (CollideX && !CollideY)
+			{
+				m_Direction.x = -vel.x;
+				m_Direction.y = vel.y;
+			}
+			else if (!CollideX && CollideY)
+			{
+				m_Direction.x = vel.x;
+				m_Direction.y = -vel.y;
+			}
+			else
+			{
+				m_Direction.x = -vel.x;
+				m_Direction.y = -vel.y;
+			}
+			
+			m_Direction.x *= (100 - 50) / 100.0;
+			m_Direction.y *= (100 - 50) / 100.0;
+			m_StartTick = Server()->Tick();
+		}
+	}
+
 	// wait for respawn
 	if(m_SpawnTick > 0)
 	{
@@ -42,7 +106,7 @@ void CPickup::Tick()
 	}
 	// Check if a player intersected us
 	CCharacter *pChr = GameServer()->m_World.ClosestCharacter(m_Pos, 20.0f, 0);
-	if(pChr && pChr->IsAlive())
+	if(pChr && GameServer()->m_pController->PlayerPickable(pChr))
 	{
 		// player picked us up, is someone was hooking us, let them go
 		int RespawnTime = -1;
@@ -113,6 +177,11 @@ void CPickup::Tick()
 				pChr->GetPlayer()->GetCID(), Server()->ClientName(pChr->GetPlayer()->GetCID()), m_Type, m_Subtype);
 			GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 			m_SpawnTick = Server()->Tick() + Server()->TickSpeed() * RespawnTime;
+
+			if(m_OneTime)
+			{
+				GameServer()->m_World.DestroyEntity(this); // do destroy
+			}
 		}
 	}
 }

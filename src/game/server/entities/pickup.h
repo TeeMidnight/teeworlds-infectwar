@@ -16,6 +16,16 @@ public:
 	virtual void Tick();
 	virtual void TickPaused();
 	virtual void Snap(int SnappingClient);
+	
+	vec2 GetPos(float Time);
+
+	vec2 m_Direction;
+	vec2 m_StartPos;
+	
+	bool m_OneTime;
+	bool m_Gravity;
+	
+	int m_StartTick;
 
 private:
 	int m_Type;

@@ -29,6 +29,7 @@ public:
 	void TryRespawn();
 	void Respawn();
 	void SetTeam(int Team, bool DoChatMsg=true);
+	void SetTeamForce(int Team) { m_Team = Team; }
 	int GetTeam() const { return m_Team; };
 	int GetCID() const { return m_ClientID; };
 
@@ -96,6 +97,8 @@ public:
 		int m_Min;
 		int m_Max;
 	} m_Latency;
+
+	int m_DeathNum;
 
 private:
 	CCharacter *m_pCharacter;

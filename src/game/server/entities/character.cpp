@@ -8,6 +8,7 @@
 #include "character.h"
 #include "laser.h"
 #include "projectile.h"
+#include "turret.h"
 
 //input count
 struct CInputCount
@@ -57,7 +58,7 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_EmoteStop = -1;
 	m_LastAction = -1;
 	m_LastNoAmmoSound = -1;
-	m_ActiveWeapon = WEAPON_GUN;
+	m_ActiveWeapon = WEAPON_HAMMER;
 	m_LastWeapon = WEAPON_HAMMER;
 	m_QueuedWeapon = -1;
 
@@ -289,14 +290,14 @@ void CCharacter::FireWeapon()
 			m_NumObjectsHit = 0;
 			GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
 
-			CCharacter *apEnts[MAX_CLIENTS];
+			CEntity *apEnts[MAX_CLIENTS];
 			int Hits = 0;
 			int Num = GameServer()->m_World.FindEntities(ProjStartPos, m_ProximityRadius*0.5f, (CEntity**)apEnts,
 														MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 
 			for (int i = 0; i < Num; ++i)
 			{
-				CCharacter *pTarget = apEnts[i];
+				CCharacter *pTarget = (CCharacter*) apEnts[i];
 
 				if ((pTarget == this) || GameServer()->Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
 					continue;
@@ -316,6 +317,35 @@ void CCharacter::FireWeapon()
 				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
 					m_pPlayer->GetCID(), m_ActiveWeapon);
 				Hits++;
+			}
+			
+			if(m_pPlayer->GetTeam() == TEAM_RED)
+			{
+				Num = GameServer()->m_World.FindEntities(ProjStartPos, m_ProximityRadius*0.5f, (CEntity**)apEnts,
+															MAX_CLIENTS, CGameWorld::ENTTYPE_TURRET);
+
+				for (int i = 0; i < Num; ++i)
+				{
+					CTurret *pTarget = (CTurret*) apEnts[i];
+
+					if (GameServer()->Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
+						continue;
+
+					// set his velocity to fast upward (for now)
+					if(length(pTarget->m_Pos-ProjStartPos) > 0.0f)
+						GameServer()->CreateHammerHit(pTarget->m_Pos-normalize(pTarget->m_Pos-ProjStartPos)*m_ProximityRadius*0.5f);
+					else
+						GameServer()->CreateHammerHit(ProjStartPos);
+
+					vec2 Dir;
+					if (length(pTarget->m_Pos - m_Pos) > 0.0f)
+						Dir = normalize(pTarget->m_Pos - m_Pos);
+					else
+						Dir = vec2(0.f, -1.f);
+
+					pTarget->TakeDamage(m_pPlayer->GetCID(), g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage);
+					Hits++;
+				}
 			}
 
 			// if we Hit anything, we have to wait for the reload
@@ -516,15 +546,6 @@ void CCharacter::ResetInput()
 
 void CCharacter::Tick()
 {
-	if(m_pPlayer->m_ForceBalanced)
-	{
-		char Buf[128];
-		str_format(Buf, sizeof(Buf), "You were moved to %s due to team balancing", GameServer()->m_pController->GetTeamName(m_pPlayer->GetTeam()));
-		GameServer()->SendBroadcast(Buf, m_pPlayer->GetCID());
-
-		m_pPlayer->m_ForceBalanced = false;
-	}
-
 	m_Core.m_Input = m_Input;
 	m_Core.Tick(true);
 
@@ -643,16 +664,27 @@ void CCharacter::TickPaused()
 		++m_EmoteStop;
 }
 
-bool CCharacter::IncreaseHealth(int Amount)
+bool CCharacter::IncreaseHealth(int Amount, bool Extra)
 {
+	if(Extra)
+	{
+		m_Health += Amount;
+		return true;
+	}
+
 	if(m_Health >= 10)
 		return false;
 	m_Health = clamp(m_Health+Amount, 0, 10);
 	return true;
 }
 
-bool CCharacter::IncreaseArmor(int Amount)
+bool CCharacter::IncreaseArmor(int Amount, bool Extra)
 {
+	if(Extra)
+	{
+		m_Armor += Amount;
+	}
+
 	if(m_Armor >= 10)
 		return false;
 	m_Armor = clamp(m_Armor+Amount, 0, 10);
@@ -665,8 +697,7 @@ void CCharacter::Die(int Killer, int Weapon)
 	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
 
 	int ModeSpecial = 0;
-	if(Killer >= 0 && GameServer()->m_apPlayers[Killer])
-		ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
+	ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, Killer, Weapon);
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "kill killer='%d:%s' victim='%d:%s' weapon=%d special=%d",
@@ -700,6 +731,8 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 
 	if(GameServer()->m_pController->IsFriendlyFire(m_pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage)
 		return false;
+
+	GameServer()->m_pController->OnCharacterDamage(this, From, Dmg);
 
 	// m_pPlayer only inflicts half damage on self
 	if(From == m_pPlayer->GetCID())
@@ -823,6 +856,12 @@ void CCharacter::Snap(int SnappingClient)
 		m_EmoteStop = -1;
 	}
 
+	if(pCharacter->m_HookedPlayer != -1)
+	{
+		if(!Server()->Translate(pCharacter->m_HookedPlayer, SnappingClient))
+			pCharacter->m_HookedPlayer = -1;
+	}
+
 	pCharacter->m_Emote = m_EmoteType;
 
 	pCharacter->m_AmmoCount = 0;
@@ -875,4 +914,12 @@ void CCharacter::Snap(int SnappingClient)
 
 	pDDNetCharacter->m_TargetX = m_Core.m_Input.m_TargetX;
 	pDDNetCharacter->m_TargetY = m_Core.m_Input.m_TargetY;
+}
+
+void CCharacter::RemoveWeapon(int Weapon)
+{
+	m_aWeapons[Weapon].m_Got = false;
+	m_aWeapons[Weapon].m_Ammo = 0;
+	m_aWeapons[Weapon].m_Ammocost = 0;
+	m_aWeapons[Weapon].m_AmmoRegenStart = 0;
 }

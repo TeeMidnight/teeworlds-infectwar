@@ -444,6 +444,7 @@ int CServer::GetClientInfo(int ClientID, CClientInfo *pInfo)
 	{
 		pInfo->m_pName = m_aClients[ClientID].m_aName;
 		pInfo->m_Latency = m_aClients[ClientID].m_Latency;
+		pInfo->m_CustClt = m_aClients[ClientID].m_CustClt;
 		return 1;
 	}
 	return 0;
@@ -770,7 +771,10 @@ void CServer::SendCapabilities(int ClientID)
 {
 	CMsgPacker Msg(NETMSG_CAPABILITIES);
 	Msg.AddInt(SERVERCAP_CURVERSION); // version
-	Msg.AddInt(SERVERCAPFLAG_DDNET | SERVERCAPFLAG_PINGEX); // flags
+	int Capabilities = SERVERCAPFLAG_DDNET | SERVERCAPFLAG_PINGEX;
+	if(g_Config.m_SvAllowDummy)
+		Capabilities |= SERVERCAPFLAG_ALLOWDUMMY;
+	Msg.AddInt(Capabilities); // flags
 	SendMsgEx(&Msg, MSGFLAG_VITAL, ClientID, true);
 }
 

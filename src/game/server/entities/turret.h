@@ -8,18 +8,25 @@ class CTurret : public CEntity
     vec2 m_TargetPos;
     bool m_Target;
     int m_AttackTick;
+
+    float m_Radius;
+
+    bool m_Drop;
 public:
 	int m_Type;
     int m_Owner;
     int m_TurretID;
+    int m_Health;
 
 	CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int TurretID);
 
+    void Destroy() override;
     void Fire();
-    virtual void Tick();
+    void TakeDamage(int From, int Dmg);
+    void Tick() override;
     
 	bool SnapFakeTee(int SnappingClient);
-	virtual void Snap(int SnappingClient);
+	void Snap(int SnappingClient) override;
 };
 
 #endif

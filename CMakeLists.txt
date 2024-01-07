@@ -372,6 +372,7 @@ set_glob(BASE GLOB_RECURSE src/base
   hash_ctxt.h
   hash_libtomcrypt.cpp
   hash_openssl.cpp
+  math.cpp
   math.h
   system.c
   system.h

@@ -34,6 +34,7 @@ inline T mix(const T a, const T b, TB amount)
 }
 
 inline float frandom() { return rand()/(float)(RAND_MAX); }
+int random_int(int Min, int Max);
 
 // float to fixed
 inline int f2fx(float v) { return (int)(v*(float)(1<<10)); }

@@ -3,11 +3,13 @@
 
 #include "laser.h"
 #include "projectile.h"
+#include "pickup.h"
 
 CTurret::CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int TurretID)
 : CEntity(pGameWorld, CGameWorld::ENTTYPE_TURRET)
 {
-	m_ProximityRadius = 320.0f;
+	m_ProximityRadius = 32.0f;
+	m_Radius = Type == WEAPON_HAMMER ? m_ProximityRadius : 320.0f;
 
     m_Pos = Pos;
     m_Type = Type;
@@ -17,7 +19,27 @@ CTurret::CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int Turr
 
 	m_TurretID = TurretID;
 
+	m_Health = 5 + Type * 5;
+
+	m_Drop = false;
+
 	GameWorld()->InsertEntity(this);
+}
+
+void CTurret::Destroy()
+{
+	if(m_Drop)
+	{
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_WEAPON, m_Type);
+		pPickup->m_Pos = m_Pos;
+		pPickup->m_StartPos = m_Pos;
+		pPickup->m_Direction = vec2(0, 1);
+		pPickup->m_Gravity = true;
+		pPickup->m_OneTime = true; // only pick one time
+		pPickup->m_StartTick = Server()->Tick();
+	}
+
+	CEntity::Destroy();
 }
 
 void CTurret::Fire()
@@ -39,6 +61,9 @@ void CTurret::Fire()
 			for (int i = 0; i < Num; ++i)
 			{
 				CCharacter *pTarget = apEnts[i];
+
+				if(pTarget->GetPlayer()->GetTeam() == TEAM_BLUE)
+					continue;
 
 				if (GameServer()->Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
 					continue;
@@ -119,18 +144,53 @@ void CTurret::Fire()
     m_AttackTick = Server()->Tick();
 }
 
+void CTurret::TakeDamage(int From, int Dmg)
+{
+	m_Health -= Dmg;
+
+	if(m_Health <= 0)
+	{
+		GameServer()->CreateExplosion(m_Pos, m_Owner, m_Type, false);
+		GameWorld()->DestroyEntity(this);
+
+		m_Drop = false;
+
+		GameServer()->SendChatTargetFormat(m_Owner, _("'%s' destroys your turret!"), Server()->ClientName(From));
+	}
+}
+
 void CTurret::Tick()
 {
+	if(m_MarkedForDestroy)
+		return;
+
+	if(!GameServer()->GetPlayerChar(m_Owner))
+	{
+		m_Drop = true;
+		GameWorld()->DestroyEntity(this);
+		return;
+	}
+
+	if(GameServer()->m_apPlayers[m_Owner]->GetTeam() != TEAM_BLUE)
+	{
+		m_Drop = true;
+		GameWorld()->DestroyEntity(this);
+		return;
+	}
+
 	CCharacter *apEnts[MAX_CLIENTS];
-    int Num = GameServer()->m_World.FindEntities(m_Pos, m_ProximityRadius, (CEntity**)apEnts,
+    int Num = GameServer()->m_World.FindEntities(m_Pos, m_Radius, (CEntity**)apEnts,
                                                 MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
     bool Target = false;
 
-    int ReloadTick = g_pData->m_Weapons.m_aId[m_Type].m_Firedelay * Server()->TickSpeed() / 1000;
+    int ReloadTick = g_pData->m_Weapons.m_aId[m_Type].m_Firedelay * Server()->TickSpeed() / 500;
 
     for (int i = 0; i < Num; ++i)
     {
         CCharacter *pTarget = apEnts[i];
+		if(pTarget->GetPlayer()->GetTeam() == TEAM_BLUE)
+			continue;
+
         if(distance(m_Pos, pTarget->m_Pos) < distance(m_Pos, m_TargetPos) || !Target)
             m_TargetPos = pTarget->m_Pos;
         Target = true;
@@ -198,7 +258,7 @@ bool CTurret::SnapFakeTee(int SnappingClient)
 	pPlayerInfo->m_Local = 0;
 	pPlayerInfo->m_ClientID = id;
 	pPlayerInfo->m_Score = 0;
-	pPlayerInfo->m_Team = 1000;
+	pPlayerInfo->m_Team = -1; // don't show them on the hud
     
     CNetObj_Character *pCharacter = static_cast<CNetObj_Character *>(Server()->SnapNewItem(NETOBJTYPE_CHARACTER, id, sizeof(CNetObj_Character)));
     if(!pCharacter)
@@ -238,6 +298,24 @@ bool CTurret::SnapFakeTee(int SnappingClient)
     pCharacter->m_Y = m_Pos.y;
     pCharacter->m_VelX = 0;
     pCharacter->m_VelY = 0;
+
+    CNetObj_DDNetCharacter *pDDNetCharacter = static_cast<CNetObj_DDNetCharacter *>(Server()->SnapNewItem(NETOBJTYPE_DDNETCHARACTER, id, sizeof(CNetObj_DDNetCharacter)));
+    if(!pDDNetCharacter) return false;
+	
+	pDDNetCharacter->m_Flags = CHARACTERFLAG_COLLISION_DISABLED;
+
+	pDDNetCharacter->m_FreezeStart = 0;
+	pDDNetCharacter->m_FreezeEnd =	0;
+
+	pDDNetCharacter->m_JumpedTotal = 0;
+	pDDNetCharacter->m_Jumps = 0;
+	pDDNetCharacter->m_TeleCheckpoint = 0;
+	pDDNetCharacter->m_StrongWeakID = 0; // unused
+
+	pDDNetCharacter->m_NinjaActivationTick = 0;
+
+	pDDNetCharacter->m_TargetX = m_TargetPos.x;
+	pDDNetCharacter->m_TargetY = m_TargetPos.y;
 
 	return true;
 }

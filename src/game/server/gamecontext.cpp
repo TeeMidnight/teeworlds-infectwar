@@ -265,6 +265,29 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText)
 		}
 	}
 }
+void CGameContext::SendChatTargetFormat(int To, const char *pText, ...)
+{
+	char aBuffer[1024];
+
+	va_list args;
+	va_start(args, pText);
+	str_format_list(aBuffer, sizeof(aBuffer), pText, args);
+	va_end(args);
+
+	SendChatTarget(To, aBuffer);
+}
+
+void CGameContext::SendChatFormat(int ClientID, int Team, const char *pText, ...)
+{
+	char aBuffer[1024];
+
+	va_list args;
+	va_start(args, pText);
+	str_format_list(aBuffer, sizeof(aBuffer), pText, args);
+	va_end(args);
+
+	SendChat(ClientID, Team, aBuffer);
+}
 
 void CGameContext::SendEmoticon(int ClientID, int Emoticon)
 {
@@ -281,7 +304,7 @@ void CGameContext::SendWeaponPickup(int ClientID, int Weapon)
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
 }
 
-void CGameContext::SendBroadcast(const char *pText, int ClientID, int Ticks, int Layer)
+void CGameContext::SendBroadcast(int ClientID, const char *pText, int Ticks, int Layer)
 {
 	CBroadcast Broadcast;
 	str_copy(Broadcast.m_aMessage, pText, sizeof(Broadcast.m_aMessage));
@@ -326,7 +349,7 @@ void CGameContext::SendBroadcast(const char *pText, int ClientID, int Ticks, int
 	}
 }
 
-void CGameContext::SendBroadcastFormat(const char *pText, int ClientID, int Ticks, int Layer, ...)
+void CGameContext::SendBroadcastFormat(int ClientID, const char *pText, int Ticks, int Layer, ...)
 {
 	char aBuffer[1024];
 
@@ -335,7 +358,7 @@ void CGameContext::SendBroadcastFormat(const char *pText, int ClientID, int Tick
 	str_format_list(aBuffer, sizeof(aBuffer), pText, args);
 	va_end(args);
 
-	SendBroadcast(aBuffer, ClientID, Ticks, Layer);
+	SendBroadcast(ClientID, aBuffer, Ticks, Layer);
 }
 
 void CGameContext::DoBroadcastRefresh(int ClientID)
@@ -908,7 +931,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			if(pMsg->m_Team != TEAM_SPECTATORS && m_LockTeams)
 			{
 				pPlayer->m_LastSetTeam = Server()->Tick();
-				SendBroadcast("Teams are locked", ClientID);
+				SendBroadcast(ClientID, _("Teams are locked"));
 				return;
 			}
 
@@ -916,33 +939,11 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			{
 				pPlayer->m_LastSetTeam = Server()->Tick();
 				int TimeLeft = (pPlayer->m_TeamChangeTick - Server()->Tick())/Server()->TickSpeed();
-				char aBuf[128];
-				str_format(aBuf, sizeof(aBuf), "Time to wait before changing team: %02d:%02d", TimeLeft/60, TimeLeft%60);
-				SendBroadcast(aBuf, ClientID);
+				SendBroadcastFormat(ClientID, _("Time to wait before changing team: %02d:%02d"), 150, BCLAYER_SYSTEM, TimeLeft/60, TimeLeft%60);
 				return;
 			}
 
-			// Switch team on given client and kill/respawn him
-			if(m_pController->CanJoinTeam(pMsg->m_Team, ClientID))
-			{
-				if(m_pController->CanChangeTeam(pPlayer, pMsg->m_Team))
-				{
-					pPlayer->m_LastSetTeam = Server()->Tick();
-					if(pPlayer->GetTeam() == TEAM_SPECTATORS || pMsg->m_Team == TEAM_SPECTATORS)
-						m_VoteUpdate = true;
-					pPlayer->SetTeam(pMsg->m_Team);
-					(void)m_pController->CheckTeamBalance();
-					pPlayer->m_TeamChangeTick = Server()->Tick();
-				}
-				else
-					SendBroadcast("Teams must be balanced, please join other team", ClientID);
-			}
-			else
-			{
-				char aBuf[128];
-				str_format(aBuf, sizeof(aBuf), "Only %d active players are allowed", Server()->MaxClients()-g_Config.m_SvSpectatorSlots);
-				SendBroadcast(aBuf, ClientID);
-			}
+			m_pController->OnPlayerJoinTeam(pPlayer, pMsg->m_Team);
 		}
 		else if (MsgID == NETMSGTYPE_CL_SETSPECTATORMODE && !m_World.m_Paused)
 		{
@@ -998,6 +999,8 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			pPlayer->m_LastEmote = Server()->Tick();
 
 			SendEmoticon(ClientID, pMsg->m_Emoticon);
+			
+			m_pController->OnPlayerEmoticon(pPlayer, pMsg->m_Emoticon);
 		}
 		else if (MsgID == NETMSGTYPE_CL_KILL && !m_World.m_Paused)
 		{
@@ -1173,7 +1176,7 @@ void CGameContext::ConRestart(IConsole::IResult *pResult, void *pUserData)
 void CGameContext::ConBroadcast(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
-	pSelf->SendBroadcast(pResult->GetString(0), -1, 150, BCLAYER_ADMIN);
+	pSelf->SendBroadcast(-1, pResult->GetString(0), 150, BCLAYER_ADMIN);
 }
 
 void CGameContext::ConSay(IConsole::IResult *pResult, void *pUserData)
@@ -1701,17 +1704,3 @@ const char *CGameContext::Version() { return GAME_VERSION; }
 const char *CGameContext::NetVersion() { return GAME_NETVERSION; }
 
 IGameServer *CreateGameServer() { return new CGameContext; }
-
-int CGameContext::NumPlayers() const
-{
-	int Num = 0;
-	for(int i = 0;i < MAX_CLIENTS; i ++)
-	{
-		if(!m_apPlayers[i])
-			continue;
-		if(m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
-			continue;
-		Num ++;
-	}
-	return Num;
-}

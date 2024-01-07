@@ -53,8 +53,8 @@ public:
 	bool Spawn(class CPlayer *pPlayer, vec2 Pos);
 	bool Remove();
 
-	bool IncreaseHealth(int Amount);
-	bool IncreaseArmor(int Amount);
+	bool IncreaseHealth(int Amount, bool Extra = false);
+	bool IncreaseArmor(int Amount, bool Extra = false);
 
 	bool GiveWeapon(int Weapon, int Ammo);
 	void GiveNinja();
@@ -133,6 +133,9 @@ private:
 public:
 	inline bool GotWeapon(int Weapon) { return m_aWeapons[Weapon].m_Got; }
 	CNinjaStatus *NinjaStatus() { return &m_Ninja; }
+	int ActiveWeapon() { return m_ActiveWeapon; }
+
+	void RemoveWeapon(int Weapon);
 };
 
 #endif

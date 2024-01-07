@@ -12,13 +12,13 @@
 */
 class IGameController
 {
-	vec2 m_aaSpawnPoints[3][64];
-	int m_aNumSpawnPoints[3];
-
 	class CGameContext *m_pGameServer;
 	class IServer *m_pServer;
 
 protected:
+	vec2 m_aaSpawnPoints[3][64];
+	int m_aNumSpawnPoints[3];
+
 	CGameContext *GameServer() const { return m_pGameServer; }
 	IServer *Server() const { return m_pServer; }
 
@@ -122,11 +122,11 @@ public:
 
 		Arguments:
 			pVictim - The CCharacter that died.
-			pKiller - The player that killed it.
+			Killer - The player that killed it.
 			Weapon - What weapon that killed it. Can be -1 for undefined
 				weapon when switching team or player suicides.
 	*/
-	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
+	virtual int OnCharacterDeath(class CCharacter *pVictim, int Killer, int Weapon);
 	/*
 		Function: OnClientConnected
 			Called when a client connected
@@ -135,13 +135,18 @@ public:
 			ClientID - The client id
 	*/
 	virtual void OnClientConnected(int ClientID);
-
-
-	virtual void OnPlayerInfoChange(class CPlayer *pP);
+	
+	virtual void OnPlayerInfoChange(class CPlayer *pPlayer);
+	virtual void OnPlayerEmoticon(class CPlayer *pPlayer, int Emoticon) {};
+	
+	virtual void OnCharacterDamage(class CCharacter *pChr, int From, int& Dmg) {}
 
 	//
 	virtual bool CanSpawn(int Team, vec2 *pPos);
 
+	virtual bool PlayerPickable(class CCharacter *pChr);
+
+	virtual void OnPlayerJoinTeam(class CPlayer *pPlayer, int JoinTeam);
 	/*
 
 	*/
@@ -149,7 +154,7 @@ public:
 	virtual int GetAutoTeam(int NotThisID);
 	virtual bool CanJoinTeam(int Team, int NotThisID);
 	virtual bool CheckTeamBalance();
-	virtual bool CanChangeTeam(CPlayer *pPplayer, int JoinTeam);
+	virtual bool CanChangeTeam(class CPlayer *pPlayer, int JoinTeam);
 	virtual int ClampTeam(int Team);
 
 	virtual void PostReset();
