@@ -516,6 +516,12 @@ void CGameControllerInfectWar::OnCharacterDamage(class CCharacter *pChr, int Fro
 		return;
 	}
 
+	if(pChr && pChr->ActiveWeapon() == WEAPON_NINJA)
+	{
+		Dmg = 0; // Ninja!~
+		return;
+	}
+
 	CPlayer *pFrom = GameServer()->m_apPlayers[From];
 
 	if(pFrom && pFrom->GetTeam() == TEAM_RED)
