@@ -275,9 +275,9 @@ int CGameControllerInfectWar::OnCharacterDeath(class CCharacter *pVictim, int Ki
 		else
 		{
 			if(pKiller->GetTeam() == TEAM_RED)
-				pKiller->m_Score++;
-			else
 				pKiller->m_Score += 5;
+			else
+				pKiller->m_Score++;
 			pVictim->GetPlayer()->m_DeathNum ++;
 		}
 		if(Weapon == WEAPON_SELF)
@@ -518,7 +518,10 @@ void CGameControllerInfectWar::OnPlayerEmoticon(CPlayer *pPlayer, int Emoticon)
 		int NeedArmor = Weapon;
 		if(Weapon == WEAPON_HAMMER) // build a armor/health/hammer turret
 		{
-			NeedArmor = 4;
+			if(Emoticon == EMOTICON_QUESTION)
+				NeedArmor = 4;
+			else 
+				NeedArmor = 2;
 		}
 		if(pPlayer->GetCharacter()->GetArmor() < NeedArmor)
 		{
