@@ -374,8 +374,27 @@ void CGameControllerInfectWar::Tick()
 		m_RoundStartTick ++;
 	}
 
-	if(LastBuildTick() == 0) // start infection
-		DoInfection();
+	if(LastBuildTick() > 0) // sleep infect
+	{
+		for(int i = 0; i < MAX_CLIENTS; i ++)
+		{	
+			if(!GameServer()->m_apPlayers[i])
+				continue;
+			if(GameServer()->m_apPlayers[i]->GetTeam() != TEAM_RED)
+				continue;
+			GameServer()->m_apPlayers[i]->SetTeamForce(TEAM_SPECTATORS); // sleep
+		}
+	}else if(LastBuildTick() == 0)
+	{
+		for(int i = 0; i < MAX_CLIENTS; i ++)
+		{	
+			if(!GameServer()->m_apPlayers[i])
+				continue;
+			if(GameServer()->m_apPlayers[i]->GetTeam() != TEAM_RED)
+				continue;
+			GameServer()->m_apPlayers[i]->SetTeamForce(TEAM_RED); // wake up
+		}
+	}
 
 	DoNinjaBar();
 
@@ -429,6 +448,8 @@ void CGameControllerInfectWar::StartRound()
 		(*Server()->GetIdMap(i)).clear();
 	}
 	m_LastTurretID = MAX_CLIENTS;
+	
+	DoInfection();
 }
 
 void CGameControllerInfectWar::OnClientConnected(int ClientID)
@@ -479,7 +500,7 @@ void CGameControllerInfectWar::OnPlayerInfoChange(CPlayer *pPlayer)
 	if(pPlayer->GetTeam() == TEAM_RED || pPlayer->GetTeam() == TEAM_SPECTATORS) // red = infected
 	{
 		pPlayer->m_TeeInfos.m_UseCustomColor = 1;
-		if(pPlayer->GetTeam() == TEAM_RED)
+		if(pPlayer->GetTeam() == TEAM_RED || pPlayer->GetCharacter()) // fake spec is infect
 		{
 			pPlayer->m_TeeInfos.m_ColorBody = InfectColor;
 			pPlayer->m_TeeInfos.m_ColorFeet = InfectColor;
