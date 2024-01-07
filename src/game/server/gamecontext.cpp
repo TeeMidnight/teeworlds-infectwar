@@ -957,10 +957,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				(g_Config.m_SvSpamprotection && pPlayer->m_LastSetSpectatorMode && pPlayer->m_LastSetSpectatorMode+Server()->TickSpeed()*3 > Server()->Tick()))
 				return;
 
-			int SpectatorID = pMsg->m_SpectatorID;
-			if(!Server()->ReverseTranslate(SpectatorID, ClientID))
-				return;
-
 			pPlayer->m_LastSetSpectatorMode = Server()->Tick();
 			if(SpectatorID != SPEC_FREEVIEW && (!m_apPlayers[SpectatorID] || m_apPlayers[SpectatorID]->GetTeam() == TEAM_SPECTATORS))
 				SendChatTarget(ClientID, "Invalid spectator id used");
