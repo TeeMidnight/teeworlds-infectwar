@@ -134,6 +134,8 @@ public:
 	inline bool GotWeapon(int Weapon) { return m_aWeapons[Weapon].m_Got; }
 	CNinjaStatus *NinjaStatus() { return &m_Ninja; }
 	int ActiveWeapon() { return m_ActiveWeapon; }
+	int GetHealth() { return m_Health; }
+	int GetArmor() { return m_Armor; }
 
 	void RemoveWeapon(int Weapon);
 };

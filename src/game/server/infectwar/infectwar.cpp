@@ -274,7 +274,10 @@ int CGameControllerInfectWar::OnCharacterDeath(class CCharacter *pVictim, int Ki
 			pVictim->GetPlayer()->m_Score--; // suicide
 		else
 		{
-			pKiller->m_Score++;
+			if(pKiller->GetTeam() == TEAM_RED)
+				pKiller->m_Score++;
+			else
+				pKiller->m_Score += 5;
 			pVictim->GetPlayer()->m_DeathNum ++;
 		}
 		if(Weapon == WEAPON_SELF)
@@ -383,7 +386,7 @@ void CGameControllerInfectWar::DoWincheck()
 		else if(!NumHumans())
 		{
 			EndRound();
-			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, _("Any time is zombie time...."));
+			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, _("Every time is zombie time...."));
 		}else if(NumInfects() < m_NeedInfectNum)
 		{
 			DoInfection();
@@ -486,21 +489,36 @@ void CGameControllerInfectWar::OnPlayerEmoticon(CPlayer *pPlayer, int Emoticon)
 	if(!pPlayer->GetCharacter()) // where is your character?
 		return;
 
-	if(pPlayer->GetCharacter()->ActiveWeapon() == WEAPON_HAMMER || pPlayer->GetCharacter()->ActiveWeapon() == WEAPON_NINJA)
+	if(pPlayer->GetCharacter()->ActiveWeapon() == WEAPON_NINJA)
 	{
-		return; // now don't place your hammer;
+		return; // now don't place your ninja;
 	}
 
 	if(Emoticon != EMOTICON_GHOST && Emoticon != EMOTICON_QUESTION)
 		return;
 	
 	// create turret
-	if(pPlayer->GetCharacter()->GotWeapon(pPlayer->GetCharacter()->ActiveWeapon()))
+	int Weapon = pPlayer->GetCharacter()->ActiveWeapon();
+	if(pPlayer->GetCharacter()->GotWeapon(Weapon))
 	{
+		int NeedArmor = min(0, Weapon - 1);
+		if(Weapon == WEAPON_HAMMER) // build a armor/health/hammer turret
+		{
+			NeedArmor = 4;
+		}
+		if(pPlayer->GetCharacter()->GetArmor() < NeedArmor)
+		{
+			GameServer()->SendChatTargetFormat(pPlayer->GetCID(), _("You need %d armors to build it"), NeedArmor);
+			return;
+		}
+
+		pPlayer->GetCharacter()->IncreaseArmor(-NeedArmor);
+
 		new CTurret(&GameServer()->m_World, pPlayer->GetCharacter()->m_Pos, 
-			pPlayer->GetCharacter()->ActiveWeapon(), pPlayer->GetCID(), m_LastTurretID ++, Emoticon == EMOTICON_QUESTION);
+			Weapon, pPlayer->GetCID(), m_LastTurretID ++, Emoticon == EMOTICON_QUESTION);
 		
-		pPlayer->GetCharacter()->RemoveWeapon(pPlayer->GetCharacter()->ActiveWeapon());
+		if(Weapon != WEAPON_HAMMER && Weapon != WEAPON_GUN)
+			pPlayer->GetCharacter()->RemoveWeapon(Weapon);
 		pPlayer->GetCharacter()->SetWeapon(WEAPON_HAMMER);
 	}
 }

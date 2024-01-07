@@ -9,7 +9,7 @@ CTurret::CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int Turr
 : CEntity(pGameWorld, CGameWorld::ENTTYPE_TURRET)
 {
 	m_ProximityRadius = 32.0f;
-	m_Radius = Type == WEAPON_HAMMER ? m_ProximityRadius : 320.0f;
+	m_Radius = Type == WEAPON_HAMMER ? m_ProximityRadius * 1.5f : 320.0f;
 
     m_Pos = Pos;
     m_Type = Type;
@@ -159,6 +159,9 @@ void CTurret::TakeDamage(int From, int Dmg)
 		m_Drop = false;
 
 		GameServer()->SendChatTargetFormat(m_Owner, _("'%s' destroys your turret!"), Server()->ClientName(From));
+
+		if(GameServer()->m_apPlayers[From])
+			GameServer()->m_apPlayers[From]->m_Score ++;
 	}
 }
 
@@ -195,10 +198,11 @@ void CTurret::DoAttacker()
 
 void CTurret::DoPlacer()
 {
-	int RespawnTime = g_pData->m_aPickups[POWERUP_WEAPON].m_Respawntime * 3 * Server()->TickSpeed();
+	int Type = (m_Type == WEAPON_HAMMER) ? random_int(POWERUP_HEALTH, POWERUP_ARMOR) : POWERUP_WEAPON;
+	int RespawnTime = g_pData->m_aPickups[Type].m_Respawntime * (m_Type + 1) * Server()->TickSpeed();
 	if(Server()->Tick() >= m_AttackTick + RespawnTime)
 	{
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_WEAPON, m_Type);
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, Type, m_Type);
 		pPickup->m_Pos = m_Pos;
 		pPickup->m_StartPos = m_Pos;
 		pPickup->m_Direction = vec2(0, 1);
