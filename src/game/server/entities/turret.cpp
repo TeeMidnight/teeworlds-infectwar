@@ -199,7 +199,7 @@ void CTurret::DoAttacker()
 void CTurret::DoPlacer()
 {
 	int Type = (m_Type == WEAPON_HAMMER) ? random_int(POWERUP_HEALTH, POWERUP_ARMOR) : POWERUP_WEAPON;
-	int RespawnTime = g_pData->m_aPickups[Type].m_Respawntime * (m_Type + 1) * Server()->TickSpeed();
+	int RespawnTime = g_pData->m_aPickups[Type].m_Respawntime * (m_Type + 1) * Server()->TickSpeed() / 2;
 	if(Server()->Tick() >= m_AttackTick + RespawnTime)
 	{
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, Type, m_Type);
