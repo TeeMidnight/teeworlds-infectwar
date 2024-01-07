@@ -479,7 +479,7 @@ void CGameControllerInfectWar::OnPlayerEmoticon(CPlayer *pPlayer, int Emoticon)
 		return; // now don't place your hammer;
 	}
 
-	if(Emoticon != EMOTICON_GHOST || Emoticon != EMOTICON_QUESTION)
+	if(Emoticon != EMOTICON_GHOST && Emoticon != EMOTICON_QUESTION)
 		return;
 	
 	// create turret
