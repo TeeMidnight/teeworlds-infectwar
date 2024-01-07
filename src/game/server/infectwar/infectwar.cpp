@@ -459,6 +459,9 @@ void CGameControllerInfectWar::OnClientConnected(int ClientID)
 	if(NumPlayers() < MIN_PLAYERS)
 	{
 		GameServer()->SendBroadcastFormat(ClientID, _("At least %d players for start game "), 150, BCLAYER_SYSTEM, MIN_PLAYERS);
+	}else if(NumPlayers() == MIN_PLAYERS)
+	{
+		StartRound();
 	}
 }
 
