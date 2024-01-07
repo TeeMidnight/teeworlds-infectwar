@@ -840,7 +840,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				}
 
 				int KickID = str_toint(pMsg->m_Value);
-				if(KickID < 0 || KickID >= MAX_CLIENTS || !m_apPlayers[KickID])
+				if(!Server()->ReverseTranslate(KickID, ClientID) || KickID < 0 || KickID >= MAX_CLIENTS || !m_apPlayers[KickID])
 				{
 					SendChatTarget(ClientID, "Invalid client id to kick");
 					return;
@@ -879,7 +879,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				}
 
 				int SpectateID = str_toint(pMsg->m_Value);
-				if(SpectateID < 0 || SpectateID >= MAX_CLIENTS || !m_apPlayers[SpectateID] || m_apPlayers[SpectateID]->GetTeam() == TEAM_SPECTATORS)
+				if(!Server()->ReverseTranslate(SpectateID, ClientID) || SpectateID < 0 || SpectateID >= MAX_CLIENTS || !m_apPlayers[SpectateID] || m_apPlayers[SpectateID]->GetTeam() == TEAM_SPECTATORS)
 				{
 					SendChatTarget(ClientID, "Invalid client id to move");
 					return;
@@ -957,11 +957,15 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				(g_Config.m_SvSpamprotection && pPlayer->m_LastSetSpectatorMode && pPlayer->m_LastSetSpectatorMode+Server()->TickSpeed()*3 > Server()->Tick()))
 				return;
 
+			int SpectatorID = pMsg->m_SpectatorID;
+			if(!Server()->ReverseTranslate(SpectatorID, ClientID))
+				return;
+
 			pPlayer->m_LastSetSpectatorMode = Server()->Tick();
-			if(pMsg->m_SpectatorID != SPEC_FREEVIEW && (!m_apPlayers[pMsg->m_SpectatorID] || m_apPlayers[pMsg->m_SpectatorID]->GetTeam() == TEAM_SPECTATORS))
+			if(SpectatorID != SPEC_FREEVIEW && (!m_apPlayers[SpectatorID] || m_apPlayers[SpectatorID]->GetTeam() == TEAM_SPECTATORS))
 				SendChatTarget(ClientID, "Invalid spectator id used");
 			else
-				pPlayer->m_SpectatorID = pMsg->m_SpectatorID;
+				pPlayer->m_SpectatorID = SpectatorID;
 		}
 		else if (MsgID == NETMSGTYPE_CL_CHANGEINFO)
 		{
