@@ -9,7 +9,7 @@ CTurret::CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int Turr
 : CEntity(pGameWorld, CGameWorld::ENTTYPE_TURRET)
 {
 	m_ProximityRadius = 32.0f;
-	m_Radius = Type == WEAPON_HAMMER ? m_ProximityRadius * 1.5f : 320.0f;
+	m_Radius = Type == WEAPON_HAMMER ? m_ProximityRadius * 2.5f : 320.0f;
 
     m_Pos = Pos;
     m_Type = Type;
@@ -81,7 +81,7 @@ void CTurret::Fire()
 				else
 					Dir = vec2(0.f, -1.f);
 
-				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage * 2,
+				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage * 2.5,
 					m_Owner, m_Type);
 				Hits++;
 			}
