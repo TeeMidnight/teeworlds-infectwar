@@ -411,7 +411,9 @@ void CGameControllerInfectWar::StartRound()
 			continue;
 
 		GameServer()->m_apPlayers[i]->SetTeamForce(TEAM_BLUE);
+		(*Server()->GetIdMap(i)).clear();
 	}
+	m_LastTurretID = MAX_CLIENTS;
 }
 
 void CGameControllerInfectWar::OnClientConnected(int ClientID)
