@@ -685,7 +685,7 @@ bool CCharacter::IncreaseArmor(int Amount, bool Extra)
 		m_Armor += Amount;
 	}
 
-	if(m_Armor >= 10)
+	if(m_Armor >= 10 && Amount >= 0)
 		return false;
 	m_Armor = clamp(m_Armor+Amount, 0, 10);
 	return true;
