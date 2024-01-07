@@ -510,6 +510,12 @@ void CGameControllerInfectWar::OnCharacterDamage(class CCharacter *pChr, int Fro
 	if(From < 0)
 		return;
 
+	if(pChr->GetPlayer() == TEAM_RED && pChr->GetPlayer()->m_FakeSpec)
+	{
+		Dmg = 0;
+		return;
+	}
+
 	CPlayer *pFrom = GameServer()->m_apPlayers[From];
 
 	if(pFrom && pFrom->GetTeam() == TEAM_RED)
