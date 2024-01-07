@@ -283,7 +283,7 @@ void CGameWorld::UpdatePlayerMaps()
 		int mcount = MAX_CLIENTS;
 		for(CTurret *pEnt = (CTurret *) m_apFirstEntityTypes[ENTTYPE_TURRET]; pEnt; pEnt = (CTurret *) pEnt->m_pNextTypeEntity)
 		{
-			dist.push_back(std::make_pair(5e8 + distance(GameServer()->m_apPlayers[i]->m_ViewPos, pEnt->m_Pos), pEnt->m_TurretID));
+			dist.push_back(std::make_pair(1e9 - 2000.0f + distance(GameServer()->m_apPlayers[i]->m_ViewPos, pEnt->m_Pos), pEnt->m_TurretID));
 			mcount ++;
 		}
 
