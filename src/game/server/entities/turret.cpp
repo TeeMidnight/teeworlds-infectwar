@@ -5,7 +5,7 @@
 #include "projectile.h"
 #include "pickup.h"
 
-CTurret::CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int TurretID)
+CTurret::CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int TurretID, bool Placer)
 : CEntity(pGameWorld, CGameWorld::ENTTYPE_TURRET)
 {
 	m_ProximityRadius = 32.0f;
@@ -15,13 +15,14 @@ CTurret::CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int Turr
     m_Type = Type;
     m_Owner = Owner;
 
-    m_AttackTick = 0;
+    m_AttackTick = Server()->Tick();
 
 	m_TurretID = TurretID;
 
 	m_Health = 5 + Type * 5;
 
 	m_Drop = false;
+	m_Placer = Placer;
 
 	GameWorld()->InsertEntity(this);
 }
@@ -159,25 +160,8 @@ void CTurret::TakeDamage(int From, int Dmg)
 	}
 }
 
-void CTurret::Tick()
+void CTurret::DoAttacker()
 {
-	if(m_MarkedForDestroy)
-		return;
-
-	if(!GameServer()->GetPlayerChar(m_Owner))
-	{
-		m_Drop = true;
-		GameWorld()->DestroyEntity(this);
-		return;
-	}
-
-	if(GameServer()->m_apPlayers[m_Owner]->GetTeam() != TEAM_BLUE)
-	{
-		m_Drop = true;
-		GameWorld()->DestroyEntity(this);
-		return;
-	}
-
 	CCharacter *apEnts[MAX_CLIENTS];
     int Num = GameServer()->m_World.FindEntities(m_Pos, m_Radius, (CEntity**)apEnts,
                                                 MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
@@ -205,6 +189,48 @@ void CTurret::Tick()
             Fire();
         }
     }
+}
+
+void CTurret::DoPlacer()
+{
+	int RespawnTime = g_pData->m_aPickups[POWERUP_WEAPON].m_Respawntime * 2;
+	if(Server()->Tick() <= m_AttackTick + RespawnTime)
+	{
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_WEAPON, m_Type);
+		pPickup->m_Pos = m_Pos;
+		pPickup->m_StartPos = m_Pos;
+		pPickup->m_Direction = vec2(0, 1);
+		pPickup->m_Gravity = true;
+		pPickup->m_OneTime = true; // only pick one time
+		pPickup->m_StartTick = Server()->Tick();
+
+		m_AttackTick = Server()->Tick();
+	}
+}
+
+void CTurret::Tick()
+{
+	if(m_MarkedForDestroy)
+		return;
+
+	if(!GameServer()->GetPlayerChar(m_Owner))
+	{
+		m_Drop = true;
+		GameWorld()->DestroyEntity(this);
+		return;
+	}
+
+	if(GameServer()->m_apPlayers[m_Owner]->GetTeam() != TEAM_BLUE)
+	{
+		m_Drop = true;
+		GameWorld()->DestroyEntity(this);
+		return;
+	}
+
+	if(m_Placer)
+		DoPlacer();
+	else
+		DoAttacker();
 }
 
 void CTurret::Snap(int SnappingClient)
@@ -237,7 +263,7 @@ bool CTurret::SnapFakeTee(int SnappingClient)
 		return false;
 
 	CTeeInfo Info;
-    str_copy(Info.m_SkinName, "x_spec", sizeof(Info.m_SkinName));
+    str_copy(Info.m_SkinName, m_Placer ? "x_ninja" : "x_spec", sizeof(Info.m_SkinName));
     Info.m_UseCustomColor = 0;
     Info.m_ColorBody = 0;
     Info.m_ColorFeet = 0;
@@ -289,7 +315,7 @@ bool CTurret::SnapFakeTee(int SnappingClient)
 
     int Angle = (int)(a*256.0f);
     pCharacter->m_Angle = Angle;
-    pCharacter->m_Weapon = m_Type;
+    pCharacter->m_Weapon = m_Placer ? WEAPON_HAMMER : m_Type;
     pCharacter->m_PlayerFlags = PLAYERFLAG_PLAYING;
     pCharacter->m_Tick = Server()->Tick();
     pCharacter->m_AttackTick = m_AttackTick;
@@ -302,7 +328,7 @@ bool CTurret::SnapFakeTee(int SnappingClient)
     CNetObj_DDNetCharacter *pDDNetCharacter = static_cast<CNetObj_DDNetCharacter *>(Server()->SnapNewItem(NETOBJTYPE_DDNETCHARACTER, id, sizeof(CNetObj_DDNetCharacter)));
     if(!pDDNetCharacter) return false;
 	
-	pDDNetCharacter->m_Flags = CHARACTERFLAG_COLLISION_DISABLED;
+	pDDNetCharacter->m_Flags = CHARACTERFLAG_COLLISION_DISABLED | CHARACTERFLAG_HOOK_HIT_DISABLED;
 
 	pDDNetCharacter->m_FreezeStart = 0;
 	pDDNetCharacter->m_FreezeEnd =	0;

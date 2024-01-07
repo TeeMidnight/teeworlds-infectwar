@@ -12,16 +12,19 @@ class CTurret : public CEntity
     float m_Radius;
 
     bool m_Drop;
+    bool m_Placer;
 public:
 	int m_Type;
     int m_Owner;
     int m_TurretID;
     int m_Health;
 
-	CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int TurretID);
+	CTurret(CGameWorld *pGameWorld, vec2 Pos, int Type, int Owner, int TurretID, bool Placer = false);
 
     void Destroy() override;
     void Fire();
+    void DoAttacker();
+    void DoPlacer();
     void TakeDamage(int From, int Dmg);
     void Tick() override;
     

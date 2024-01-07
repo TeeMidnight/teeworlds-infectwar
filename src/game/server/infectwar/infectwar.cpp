@@ -497,9 +497,9 @@ void CGameControllerInfectWar::OnPlayerJoinTeam(CPlayer *pPlayer, int JoinTeam)
 {
 	if(pPlayer->GetTeam() == TEAM_SPECTATORS)
 	{
-		pPlayer->SetTeamForce(IsBuildTime() ? TEAM_BLUE : TEAM_RED);
+		pPlayer->SetTeam(IsBuildTime() ? TEAM_BLUE : TEAM_RED);
 	}else
 	{
-		pPlayer->SetTeamForce(TEAM_SPECTATORS);
+		pPlayer->SetTeam(TEAM_SPECTATORS);
 	}
 }
