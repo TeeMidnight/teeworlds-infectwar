@@ -226,7 +226,7 @@ void CTurret::Tick()
 		return;
 	}
 
-	if(GameServer()->m_apPlayers[m_Owner]->GetTeam() != TEAM_BLUE)
+	if(m_Owner != -1 && GameServer()->m_apPlayers[m_Owner] && GameServer()->m_apPlayers[m_Owner]->GetTeam() != TEAM_BLUE)
 	{
 		m_Drop = true;
 		GameWorld()->DestroyEntity(this);
