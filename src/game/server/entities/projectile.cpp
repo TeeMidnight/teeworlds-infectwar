@@ -73,6 +73,14 @@ void CProjectile::Tick()
 
 	m_LifeSpan--;
 
+	if(TargetChr)
+	{
+		if(GameServer()->m_pController->IsFriendlyFire(TargetChr->GetPlayer()->GetCID(), m_Owner))
+		{
+			return;
+		}
+	}
+
 	if(TargetChr || Collide || m_LifeSpan < 0 || GameLayerClipped(CurPos))
 	{
 		if(m_LifeSpan >= 0 || m_Weapon == WEAPON_GRENADE)
