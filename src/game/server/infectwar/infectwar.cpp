@@ -195,6 +195,7 @@ bool CGameControllerInfectWar::OnEntity(int Index, vec2 Pos)
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, Type, SubType);
 		pPickup->m_Pos = Pos;
 		pPickup->m_Gravity = false;
+		pPickup->m_NextRound = true;
 		pPickup->m_OneTime = true; // only pick one time
 		return true;
 	}
@@ -303,6 +304,7 @@ int CGameControllerInfectWar::OnCharacterDeath(class CCharacter *pVictim, int Ki
 			pPickup->m_StartPos = pVictim->m_Pos;
 			pPickup->m_Direction = vec2(cosf(a), sinf(a)) * Speed;
 			pPickup->m_Gravity = true;
+			pPickup->m_NextRound = false;
 			pPickup->m_OneTime = true; // only pick one time
 			pPickup->m_StartTick = Server()->Tick();
 			DirectionChoose ++;

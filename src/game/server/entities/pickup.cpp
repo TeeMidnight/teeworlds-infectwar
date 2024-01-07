@@ -104,6 +104,10 @@ void CPickup::Tick()
 		else
 			return;
 	}
+
+	if(m_OneTime && m_NextRound && m_SpawnTick == 0)
+		return;
+
 	// Check if a player intersected us
 	CCharacter *pChr = GameServer()->m_World.ClosestCharacter(m_Pos, 20.0f, 0);
 	if(pChr && GameServer()->m_pController->PlayerPickable(pChr))
@@ -180,7 +184,10 @@ void CPickup::Tick()
 
 			if(m_OneTime)
 			{
-				m_SpawnTick = 0; // don't spawn
+				if(m_NextRound)
+					m_SpawnTick = 0;
+				else
+					GameServer()->m_World.DestroyEntity(this);
 			}
 		}
 	}

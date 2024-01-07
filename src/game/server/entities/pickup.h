@@ -22,9 +22,10 @@ public:
 	vec2 m_Direction;
 	vec2 m_StartPos;
 	
+	bool m_NextRound;
 	bool m_OneTime;
 	bool m_Gravity;
-	
+
 	int m_StartTick;
 
 private:
