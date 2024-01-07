@@ -510,7 +510,7 @@ void CGameControllerInfectWar::OnCharacterDamage(class CCharacter *pChr, int Fro
 	if(From < 0)
 		return;
 
-	if(pChr->GetPlayer() == TEAM_RED && pChr->GetPlayer()->m_FakeSpec)
+	if(pChr->GetPlayer()->GetTeam() == TEAM_RED && pChr->GetPlayer()->m_FakeSpec)
 	{
 		Dmg = 0;
 		return;
