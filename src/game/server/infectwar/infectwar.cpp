@@ -501,7 +501,7 @@ void CGameControllerInfectWar::OnPlayerEmoticon(CPlayer *pPlayer, int Emoticon)
 	int Weapon = pPlayer->GetCharacter()->ActiveWeapon();
 	if(pPlayer->GetCharacter()->GotWeapon(Weapon))
 	{
-		int NeedArmor = min(0, Weapon);
+		int NeedArmor = Weapon;
 		if(Weapon == WEAPON_HAMMER) // build a armor/health/hammer turret
 		{
 			NeedArmor = 4;
