@@ -34,6 +34,7 @@ public:
 	const char* GetTeamName(int Team) override;
 
 	int ClampTeam(int Team) override;
+	int GetShowTeam(int Team) override;
 	int GetAutoTeam(int NotThisID) override;
 	int OnCharacterDeath(class CCharacter *pVictim, int Killer, int Weapon) override;
 	

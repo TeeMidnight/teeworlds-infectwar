@@ -138,7 +138,7 @@ public:
 	
 	virtual void OnPlayerInfoChange(class CPlayer *pPlayer);
 	virtual void OnPlayerEmoticon(class CPlayer *pPlayer, int Emoticon) {};
-	
+
 	virtual void OnCharacterDamage(class CCharacter *pChr, int From, int& Dmg) {}
 
 	//
@@ -156,6 +156,7 @@ public:
 	virtual bool CheckTeamBalance();
 	virtual bool CanChangeTeam(class CPlayer *pPlayer, int JoinTeam);
 	virtual int ClampTeam(int Team);
+	virtual int GetShowTeam(int Team) { return Team; } 
 
 	virtual void PostReset();
 };

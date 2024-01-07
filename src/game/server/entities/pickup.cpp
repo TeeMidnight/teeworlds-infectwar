@@ -180,7 +180,7 @@ void CPickup::Tick()
 
 			if(m_OneTime)
 			{
-				GameServer()->m_World.DestroyEntity(this); // do destroy
+				m_SpawnTick = 0; // don't spawn
 			}
 		}
 	}

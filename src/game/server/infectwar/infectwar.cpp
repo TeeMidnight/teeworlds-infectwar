@@ -246,6 +246,13 @@ int CGameControllerInfectWar::ClampTeam(int Team)
 	return Team&1;
 }
 
+int CGameControllerInfectWar::GetShowTeam(int Team)
+{
+	if(Team >= 0)
+		return TEAM_RED;
+	return TEAM_SPECTATORS;
+}
+
 int CGameControllerInfectWar::GetAutoTeam(int NotThisID)
 {
 	if(IsBuildTime()) // I'd better, build towers so the dead can't eat my mind!~  
