@@ -143,7 +143,6 @@ void CGameControllerInfectWar::DoInfection()
 		int RandomID = random_int(0, m_HumansID.size() - 1);
 
 		GameServer()->m_apPlayers[m_HumansID[RandomID]]->SetTeam(TEAM_RED, false); // infect
-		GameServer()->m_apPlayers[m_HumansID[RandomID]]->TryRespawn();
 		// send server chat
 		GameServer()->SendChatFormat(-1, CGameContext::CHAT_ALL, _("'%s' been a infect!"), Server()->ClientName(m_HumansID[RandomID]));
 	}
