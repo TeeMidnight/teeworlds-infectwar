@@ -57,6 +57,12 @@ vec2 CProjectile::GetPos(float Time)
 
 void CProjectile::Tick()
 {
+	if(m_Owner != -1 && !GameServer()->GetPlayerChar(m_Owner))
+	{
+		GameWorld()->DestroyEntity(this);
+		return;
+	}
+
 	float Pt = (Server()->Tick()-m_StartTick-1)/(float)Server()->TickSpeed();
 	float Ct = (Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed();
 	vec2 PrevPos = GetPos(Pt);

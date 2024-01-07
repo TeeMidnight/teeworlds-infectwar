@@ -147,6 +147,8 @@ void CTurret::Fire()
 
 void CTurret::TakeDamage(int From, int Dmg)
 {
+	GameServer()->m_pController->OnCharacterDamage(nullptr, From, Dmg);
+
 	m_Health -= Dmg;
 
 	if(m_Health <= 0)
@@ -193,7 +195,7 @@ void CTurret::DoAttacker()
 
 void CTurret::DoPlacer()
 {
-	int RespawnTime = g_pData->m_aPickups[POWERUP_WEAPON].m_Respawntime * 2 * Server()->TickSpeed();
+	int RespawnTime = g_pData->m_aPickups[POWERUP_WEAPON].m_Respawntime * 3 * Server()->TickSpeed();
 	if(Server()->Tick() >= m_AttackTick + RespawnTime)
 	{
 		CPickup *pPickup = new CPickup(&GameServer()->m_World, POWERUP_WEAPON, m_Type);
@@ -213,7 +215,7 @@ void CTurret::Tick()
 	if(m_MarkedForDestroy)
 		return;
 
-	if(!GameServer()->GetPlayerChar(m_Owner))
+	if(m_Owner != -1 && !GameServer()->GetPlayerChar(m_Owner))
 	{
 		m_Drop = true;
 		GameWorld()->DestroyEntity(this);

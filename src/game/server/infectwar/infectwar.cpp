@@ -431,7 +431,7 @@ void CGameControllerInfectWar::OnCharacterSpawn(class CCharacter *pChr)
 	// default health
 	int Health = 10;
 	if(pChr->GetPlayer()->GetTeam() == TEAM_RED)
-		Health += pChr->GetPlayer()->m_DeathNum;
+		Health += pChr->GetPlayer()->m_DeathNum * 2; // stronger infect
 	pChr->IncreaseHealth(Health, true);
 
 	// give default weapons
@@ -442,8 +442,18 @@ void CGameControllerInfectWar::OnCharacterSpawn(class CCharacter *pChr)
 
 void CGameControllerInfectWar::OnCharacterDamage(class CCharacter *pChr, int From, int& Dmg)
 {
-	if(GameServer()->m_apPlayers[From] && GameServer()->m_apPlayers[From]->GetTeam() == TEAM_RED)
-		Dmg = 40; // kill the humans
+	if(From < 0)
+		return;
+
+	CPlayer *pFrom = GameServer()->m_apPlayers[From];
+
+	if(pFrom && pFrom->GetTeam() == TEAM_RED)
+	{
+		if(pChr)
+			Dmg = 10; // kill no armor humans
+		else
+			Dmg += 1 + pFrom->m_DeathNum / 5; 
+	}
 }
 
 void CGameControllerInfectWar::OnPlayerInfoChange(CPlayer *pPlayer)
