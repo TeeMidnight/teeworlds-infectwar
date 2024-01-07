@@ -29,7 +29,7 @@ public:
 	void TryRespawn();
 	void Respawn();
 	void SetTeam(int Team, bool DoChatMsg=true);
-	void SetTeamForce(int Team) { m_Team = Team; }
+	void SetTeamForce(int Team);
 	int GetTeam() const { return m_Team; };
 	int GetCID() const { return m_ClientID; };
 

@@ -287,6 +287,12 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 	}
 }
 
+void CPlayer::SetTeamForce(int Team)
+{ 
+	m_Team = Team; 
+	GameServer()->m_pController->OnPlayerInfoChange(GameServer()->m_apPlayers[m_ClientID]);
+}
+
 void CPlayer::TryRespawn()
 {
 	vec2 SpawnPos;

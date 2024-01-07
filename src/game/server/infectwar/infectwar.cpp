@@ -393,6 +393,16 @@ void CGameControllerInfectWar::StartRound()
 	{
 		GameServer()->m_World.DestroyEntity(pEnt);
 	}
+
+	for(int i = 0; i < MAX_CLIENTS; i ++)
+	{
+		if(!GameServer()->m_apPlayers[i])
+			continue;
+		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS)
+			continue;
+
+		GameServer()->m_apPlayers[i]->SetTeamForce(TEAM_BLUE);
+	}
 }
 
 void CGameControllerInfectWar::OnClientConnected(int ClientID)
