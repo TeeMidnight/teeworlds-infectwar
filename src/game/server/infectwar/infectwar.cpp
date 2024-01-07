@@ -479,14 +479,14 @@ void CGameControllerInfectWar::OnPlayerEmoticon(CPlayer *pPlayer, int Emoticon)
 		return; // now don't place your hammer;
 	}
 
-	if(Emoticon != EMOTICON_GHOST)
+	if(Emoticon != EMOTICON_GHOST || Emoticon != EMOTICON_QUESTION)
 		return;
 	
 	// create turret
 	if(pPlayer->GetCharacter()->GotWeapon(pPlayer->GetCharacter()->ActiveWeapon()))
 	{
 		new CTurret(&GameServer()->m_World, pPlayer->GetCharacter()->m_Pos, 
-			pPlayer->GetCharacter()->ActiveWeapon(), pPlayer->GetCID(), m_LastTurretID ++);
+			pPlayer->GetCharacter()->ActiveWeapon(), pPlayer->GetCID(), m_LastTurretID ++, Emoticon == EMOTICON_QUESTION);
 		
 		pPlayer->GetCharacter()->RemoveWeapon(pPlayer->GetCharacter()->ActiveWeapon());
 		pPlayer->GetCharacter()->SetWeapon(WEAPON_HAMMER);
