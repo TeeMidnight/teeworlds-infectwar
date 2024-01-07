@@ -28,6 +28,7 @@ public:
 	// overrides
 	bool OnEntity(int Index, vec2 Pos) override;
 	bool IsFriendlyFire(int ClientID1, int ClientID2) override;
+	bool CanSpawn(int Team, vec2 *pOutPos) override;
 
 	bool PlayerPickable(class CCharacter *pChr) override;
 

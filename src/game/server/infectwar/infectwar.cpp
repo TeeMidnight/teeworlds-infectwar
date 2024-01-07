@@ -143,6 +143,7 @@ void CGameControllerInfectWar::DoInfection()
 		int RandomID = random_int(0, m_HumansID.size() - 1);
 
 		GameServer()->m_apPlayers[m_HumansID[RandomID]]->SetTeam(TEAM_RED, false); // infect
+		GameServer()->m_apPlayers[m_HumansID[RandomID]]->TryRespawn();
 		// send server chat
 		GameServer()->SendChatFormat(-1, CGameContext::CHAT_ALL, _("'%s' been a infect!"), Server()->ClientName(m_HumansID[RandomID]));
 	}
@@ -217,6 +218,29 @@ bool CGameControllerInfectWar::IsFriendlyFire(int ClientID1, int ClientID2)
 		return true;
 
 	return false;
+}
+
+bool CGameControllerInfectWar::CanSpawn(int Team, vec2 *pOutPos)
+{
+	CSpawnEval Eval;
+
+	// spectators can't spawn
+	if(Team == TEAM_SPECTATORS)
+		return false;
+
+	Eval.m_FriendlyTeam = Team;
+
+	// first try own team spawn, then normal spawn and then enemy
+	EvaluateSpawnType(&Eval, 1+(Team&1));
+	if(!Eval.m_Got)
+	{
+		EvaluateSpawnType(&Eval, 0);
+		if(!Eval.m_Got)
+			EvaluateSpawnType(&Eval, 1+((Team+1)&1));
+	}
+
+	*pOutPos = Eval.m_Pos;
+	return Eval.m_Got;
 }
 
 bool CGameControllerInfectWar::PlayerPickable(class CCharacter *pChr)
