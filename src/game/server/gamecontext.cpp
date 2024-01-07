@@ -840,7 +840,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				}
 
 				int KickID = str_toint(pMsg->m_Value);
-				if(!!Server()->ReverseTranslate(KickID, ClientID))
+				if(!Server()->ReverseTranslate(KickID, ClientID))
 					return;
 				if(KickID < 0 || KickID >= MAX_CLIENTS || !m_apPlayers[KickID])
 				{
@@ -881,7 +881,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				}
 
 				int SpectateID = str_toint(pMsg->m_Value);
-				if(!!Server()->ReverseTranslate(SpectateID, ClientID))
+				if(!Server()->ReverseTranslate(SpectateID, ClientID))
 					return;
 				if(SpectateID < 0 || SpectateID >= MAX_CLIENTS || !m_apPlayers[SpectateID] || m_apPlayers[SpectateID]->GetTeam() == TEAM_SPECTATORS)
 				{

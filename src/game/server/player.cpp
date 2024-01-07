@@ -152,7 +152,7 @@ void CPlayer::Snap(int SnappingClient)
 	if(m_ClientID == SnappingClient)
 		pPlayerInfo->m_Local = 1;
 
-	if(m_ClientID == SnappingClient && m_Team == TEAM_SPECTATORS)
+	if(m_ClientID == SnappingClient && (m_Team == TEAM_SPECTATORS || m_FakeSpec))
 	{
 		int SpectatorID = m_SpectatorID;
 		if(!Server()->Translate(SpectatorID, SnappingClient))
@@ -161,7 +161,7 @@ void CPlayer::Snap(int SnappingClient)
 		if(!pSpectatorInfo)
 			return;
 
-		pSpectatorInfo->m_SpectatorID = m_SpectatorID;
+		pSpectatorInfo->m_SpectatorID = m_FakeSpec ? id : m_SpectatorID; // self
 		pSpectatorInfo->m_X = m_ViewPos.x;
 		pSpectatorInfo->m_Y = m_ViewPos.y;
 	}

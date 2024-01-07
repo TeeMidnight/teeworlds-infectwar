@@ -122,7 +122,7 @@ public:
 	bool ReverseTranslate(int& target, int client)
 	{
 		CIdMap* map = GetIdMap(client);
-		if ((*map).count(target))
+		if (!(*map).count(target))
 			return false;
 		target = (*map)[target];
 		return true;

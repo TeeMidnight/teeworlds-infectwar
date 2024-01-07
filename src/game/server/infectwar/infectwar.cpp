@@ -406,7 +406,7 @@ void CGameControllerInfectWar::Tick()
 				continue;
 			if(GameServer()->m_apPlayers[i]->GetTeam() != TEAM_RED)
 				continue;
-			GameServer()->m_apPlayers[i]->SetTeamForce(TEAM_SPECTATORS); // sleep
+			GameServer()->m_apPlayers[i]->m_FakeSpec = true;
 		}
 	}else if(LastBuildTick() == 0)
 	{
@@ -416,7 +416,7 @@ void CGameControllerInfectWar::Tick()
 				continue;
 			if(GameServer()->m_apPlayers[i]->GetTeam() != TEAM_RED)
 				continue;
-			GameServer()->m_apPlayers[i]->SetTeamForce(TEAM_RED); // wake up
+			GameServer()->m_apPlayers[i]->m_FakeSpec = false;
 		}
 	}
 
@@ -593,7 +593,7 @@ void CGameControllerInfectWar::OnPlayerJoinTeam(CPlayer *pPlayer, int JoinTeam)
 	if(pPlayer->GetTeam() == TEAM_SPECTATORS)
 	{
 		pPlayer->SetTeam(IsBuildTime() ? TEAM_BLUE : TEAM_RED);
-	}else
+	}else if(!pPlayer->m_FakeSpec)
 	{
 		pPlayer->SetTeam(TEAM_SPECTATORS);
 	}

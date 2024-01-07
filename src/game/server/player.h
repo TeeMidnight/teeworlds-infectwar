@@ -100,6 +100,8 @@ public:
 
 	int m_DeathNum;
 
+	bool m_FakeSpec;
+
 private:
 	CCharacter *m_pCharacter;
 	CGameContext *m_pGameServer;
