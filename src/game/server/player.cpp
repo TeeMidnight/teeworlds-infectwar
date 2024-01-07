@@ -147,7 +147,7 @@ void CPlayer::Snap(int SnappingClient)
 	pPlayerInfo->m_Local = 0;
 	pPlayerInfo->m_ClientID = id;
 	pPlayerInfo->m_Score = m_Score;
-	pPlayerInfo->m_Team = GameServer()->m_pController->GetShowTeam(m_Team);
+	pPlayerInfo->m_Team = m_FakeSpec ? TEAM_SPECTATORS : GameServer()->m_pController->GetShowTeam(m_Team);
 
 	if(m_ClientID == SnappingClient)
 		pPlayerInfo->m_Local = 1;

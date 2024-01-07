@@ -523,7 +523,7 @@ void CCharacter::OnDirectInput(CNetObj_PlayerInput *pNewInput)
 	if(m_LatestInput.m_TargetX == 0 && m_LatestInput.m_TargetY == 0)
 		m_LatestInput.m_TargetY = -1;
 
-	if(m_NumInputs > 2 && m_pPlayer->GetTeam() != TEAM_SPECTATORS)
+	if(m_NumInputs > 2 && (m_pPlayer->GetTeam() != TEAM_SPECTATORS) && !m_pPlayer->m_FakeSpec)
 	{
 		HandleWeaponSwitch();
 		FireWeapon();
