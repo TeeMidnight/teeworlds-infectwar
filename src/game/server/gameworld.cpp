@@ -305,6 +305,27 @@ void CGameWorld::UpdatePlayerMaps()
 		}
 
 		mcount = 0;
+		for (auto k : (*map))
+		{
+			bool Found = false;
+			for (int j = 0; j < (int) dist.size(); j ++)
+			{
+				if (k.second == dist[j].second)
+				{
+					Found = true;
+					break;
+				}
+			}
+			if(!Found)
+			{
+				(*map).erase(mcount);
+			}else
+			{
+				mcount ++;
+			}
+		}
+
+		mcount = 0;
 		for (int j = 0; j < MaxSnap - 1; j++)
 		{
 			bool Found = false;
