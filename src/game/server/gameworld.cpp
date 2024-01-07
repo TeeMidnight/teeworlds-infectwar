@@ -304,13 +304,15 @@ void CGameWorld::UpdatePlayerMaps()
 			}
 		}
 
-		mcount = 0;
-		for (auto k : (*map))
+		for (int j = 0; j < MaxSnap - 1; j ++)
 		{
+			if(!(*map).count(j))
+				continue;
+
 			bool Found = false;
-			for (int j = 0; j < (int) dist.size(); j ++)
+			for(auto k : dist)
 			{
-				if (k.second == dist[j].second)
+				if((*map)[j] == k.second)
 				{
 					Found = true;
 					break;
@@ -318,10 +320,7 @@ void CGameWorld::UpdatePlayerMaps()
 			}
 			if(!Found)
 			{
-				(*map).erase(mcount);
-			}else
-			{
-				mcount ++;
+				(*map).erase(j);
 			}
 		}
 
