@@ -31,6 +31,8 @@ public:
 	bool CanSpawn(int Team, vec2 *pOutPos) override;
 
 	bool PlayerPickable(class CCharacter *pChr) override;
+	
+	bool OnPlayerKillSelf(class CPlayer *pPlayer) override;
 
 	const char* GetTeamName(int Team) override;
 

@@ -161,7 +161,14 @@ void CPlayer::Snap(int SnappingClient)
 		if(!pSpectatorInfo)
 			return;
 
-		pSpectatorInfo->m_SpectatorID = m_FakeSpec ? SPEC_FREEVIEW : m_SpectatorID; // self
+		pSpectatorInfo->m_SpectatorID = m_FakeSpec ? id : m_SpectatorID; // self
+		if(m_FakeSpec && m_pCharacter)
+		{
+			pSpectatorInfo->m_X = m_pCharacter->m_Pos.x;
+			pSpectatorInfo->m_X = m_pCharacter->m_Pos.y;
+
+			return;
+		}
 		pSpectatorInfo->m_X = m_ViewPos.x;
 		pSpectatorInfo->m_Y = m_ViewPos.y;
 	}

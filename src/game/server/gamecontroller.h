@@ -146,6 +146,8 @@ public:
 
 	virtual bool PlayerPickable(class CCharacter *pChr);
 
+	virtual bool OnPlayerKillSelf(class CPlayer *pPlayer) { return true; };
+
 	virtual void OnPlayerJoinTeam(class CPlayer *pPlayer, int JoinTeam);
 	/*
 

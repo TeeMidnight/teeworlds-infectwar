@@ -254,6 +254,14 @@ bool CGameControllerInfectWar::PlayerPickable(class CCharacter *pChr)
 	return true;
 }
 
+bool CGameControllerInfectWar::OnPlayerKillSelf(CPlayer *pPlayer)
+{
+	if(pPlayer->m_FakeSpec)
+		return false;
+
+    return true;
+}
+
 const char *CGameControllerInfectWar::GetTeamName(int Team)
 {
 	if(Team == TEAM_RED)
