@@ -57,11 +57,12 @@ bool CNetServer::Open(NETADDR BindAddr, CNetBan *pNetBan, int MaxClients, int Ma
 	return true;
 }
 
-int CNetServer::SetCallbacks(NETFUNC_NEWCLIENT pfnNewClient, NETFUNC_NEWCLIENT_NOAUTH pfnNewClientNoAuth, NETFUNC_DELCLIENT pfnDelClient, void *pUser)
+int CNetServer::SetCallbacks(NETFUNC_NEWCLIENT pfnNewClient, NETFUNC_NEWCLIENT_NOAUTH pfnNewClientNoAuth, NETFUNC_CLIENTREJOIN pfnClientRejoin, NETFUNC_DELCLIENT pfnDelClient, void *pUser)
 {
 	m_pfnNewClient = pfnNewClient;
 	m_pfnNewClientNoAuth = pfnNewClientNoAuth;
 	m_pfnDelClient = pfnDelClient;
+	m_pfnClientRejoin = pfnClientRejoin;
 	m_UserPtr = pUser;
 	return 0;
 }
@@ -438,7 +439,7 @@ void CNetServer::OnConnCtrlMsg(NETADDR &Addr, int ClientID, int ControlMsg, cons
 
 			// reset netconn and process rejoin
 			m_aSlots[ClientID].m_Connection.Reset(true);
-			m_pfnClientRejoin(ClientID, m_UserPtr);
+			m_pfnClientRejoin (ClientID, m_UserPtr);
 		}
 	}
 }
