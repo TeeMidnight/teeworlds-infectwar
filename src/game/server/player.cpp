@@ -165,7 +165,7 @@ void CPlayer::Snap(int SnappingClient)
 		if(m_FakeSpec && m_pCharacter)
 		{
 			pSpectatorInfo->m_X = m_pCharacter->m_Pos.x;
-			pSpectatorInfo->m_X = m_pCharacter->m_Pos.y;
+			pSpectatorInfo->m_Y = m_pCharacter->m_Pos.y;
 
 			return;
 		}
