@@ -122,7 +122,7 @@ void CGameControllerInfectWar::DoInfection()
 	}
 
 	int NeedInfect = m_NeedInfectNum; // maybe in build time there are any infects
-	std::vector<int> m_HumansID;
+	std::vector<int> HumansID;
 
 	for(int i = 0; i < MAX_CLIENTS; i ++)
 	{
@@ -135,17 +135,17 @@ void CGameControllerInfectWar::DoInfection()
 			NeedInfect --;
 			continue;
 		}
-		m_HumansID.push_back(i);
+		HumansID.push_back(i);
 	}
 
 	for(int i = 0; i < NeedInfect; i ++)
 	{
-		int RandomID = random_int(0, m_HumansID.size() - 1);
+		int RandomID = random_int(0, HumansID.size() - 1);
 
-		GameServer()->m_apPlayers[m_HumansID[RandomID]]->SetTeam(TEAM_RED, false); // infect
+		GameServer()->m_apPlayers[HumansID[RandomID]]->SetTeam(TEAM_RED, false); // infect
 		// send server chat
-		GameServer()->SendChatFormat(-1, CGameContext::CHAT_ALL, _("'%s' been a infect!"), Server()->ClientName(m_HumansID[RandomID]));
-		m_HumansID.erase(RandomID);
+		GameServer()->SendChatFormat(-1, CGameContext::CHAT_ALL, _("'%s' been a infect!"), Server()->ClientName(HumansID[RandomID]));
+		HumansID.erase(HumansID.begin() + RandomID);
 	}
 
 	return;
